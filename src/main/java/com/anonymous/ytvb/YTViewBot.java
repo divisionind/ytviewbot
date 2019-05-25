@@ -19,7 +19,6 @@
 package com.anonymous.ytvb;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
-import org.jline.terminal.Cursor;
 import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
@@ -35,7 +34,6 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.IntConsumer;
 import java.util.logging.Logger;
 
 // see https://www.linuxuprising.com/2018/10/how-to-install-and-use-tor-as-proxy-in.html for tor proxy
@@ -118,7 +116,8 @@ public class YTViewBot implements Callable<Void> {
 
                 // draw processes
 
-                // draw donate message
+
+                // draw donate message TODO move this to the right side
                 int numberOfElements = rows - screen.size() - 4;
                 for (int i = 0;i<numberOfElements;i++) {
                     screen.add(new AttributedString("\n"));
