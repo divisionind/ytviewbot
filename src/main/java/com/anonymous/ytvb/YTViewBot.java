@@ -19,11 +19,11 @@
 package com.anonymous.ytvb;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
+import org.jline.terminal.Cursor;
+import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.jline.utils.AttributedString;
-import org.jline.utils.Display;
-import org.jline.utils.NonBlockingReader;
+import org.jline.utils.*;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -35,6 +35,8 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.IntConsumer;
+import java.util.logging.Logger;
 
 // see https://www.linuxuprising.com/2018/10/how-to-install-and-use-tor-as-proxy-in.html for tor proxy
 // or https://github.com/dgoulet/torsocks
@@ -64,9 +66,7 @@ public class YTViewBot implements Callable<Void> {
     @CommandLine.Option(names = {"-u", "--user-agent"}, description = "user agent to use for web calls")
     private String userAgent;
 
-    public static StaticLine log;
-
-    public static final String LOG_SPACER = "-----------------------------------------------------------";
+    public static Logger log;
 
     private static String msg = "no key yet pressed";
 
@@ -82,7 +82,7 @@ public class YTViewBot implements Callable<Void> {
 
             Display display = new Display(terminal, true);
             display.resize(terminal.getSize().getRows(), terminal.getSize().getColumns());
-            List<AttributedString> test = new ArrayList<>();
+            List<AttributedString> screen = new ArrayList<>();
 
             new Thread(() -> {
                 NonBlockingReader reader = terminal.reader();
@@ -94,19 +94,44 @@ public class YTViewBot implements Callable<Void> {
                         i = -1;
                     }
                     msg = "Key pressed: " + i; // it works!
-                    System.out.println("HAHAHAHAHHAHAA");
+                    //System.out.println("HAHAHAHAHHAHAA");
                 }
             }).start();
 
             while (true) {
+                Size size = terminal.getSize();
+                int rows = size.getRows();
+                int columns = size.getColumns();
+
+                display.resize(rows, columns);
                 display.clear();
                 display.reset();
-                for (int i = 0;i<4;i++) {
-                    test.add(new AttributedString("Current time: " + System.currentTimeMillis()));
+
+                AttributedStringBuilder title = new AttributedStringBuilder();
+                title.style(AttributedStyle.INVERSE);
+                String titleString = "YTViewBot - just a YouTube view bot ";
+                String titleString2 = "Views Generated: " + NumberFormat.getNumberInstance().format(39490);
+                title.append(titleString);
+                for (int i = 0;i<(columns - titleString.length() - titleString2.length());i++) title.append(" ");
+                title.append(titleString2);
+                screen.add(title.toAttributedString());
+
+                // draw processes
+
+                // draw donate message
+                int numberOfElements = rows - screen.size() - 4;
+                for (int i = 0;i<numberOfElements;i++) {
+                    screen.add(new AttributedString("\n"));
                 }
-                test.add(new AttributedString(msg));
-                display.update(test, terminal.getSize().cursorPos(0, 0));
-                test.clear();
+                screen.add(new AttributedStringBuilder()
+                        .style(AttributedStyle.INVERSE)
+                                        .append("                                                                ").toAttributedString());
+                screen.add(new AttributedString("Please donate using one of the crypto addresses below. Thanks! |"));
+                screen.add(new AttributedString(" > BTC: 1FpywKn3H2CrGUR1tziq5wjhwLeXHSet9C                     |"));
+                screen.add(new AttributedString(" > BTH: bitcoincash:qz32f4h83dn9fpju594eafm4hytr528l4c4utgyw66 |"));
+
+                display.update(screen, size.cursorPos(rows, columns));
+                screen.clear();
                 Thread.sleep(500L);
             }
         } catch (IOException | InterruptedException e) {
@@ -117,9 +142,13 @@ public class YTViewBot implements Callable<Void> {
         try {
             CommandLine.call(new YTViewBot(), args);
         } catch (Exception e) {
-            log.severe("An error occurred running the program.");
-            e.printStackTrace();
+            handleException(e);
         }
+    }
+
+    public static void handleException(Exception ex) {
+        log.severe("An error occurred running the program.");
+        ex.printStackTrace();
     }
 
     private URLQueuer urlQueuer;
@@ -131,7 +160,9 @@ public class YTViewBot implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
-        log = new StaticLine(System.out, null, false);
+        //log = new StaticLine(System.out, null, false);
+        log = Logger.getLogger("YTViewBot");
+        System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tT] [%3$s/%4$s] %5$s %n");
         log.info("Initializing...");
 
         urlQueuer = new URLQueuer(urls);
@@ -142,7 +173,7 @@ public class YTViewBot implements Callable<Void> {
 
         // create browser version info
         if (userAgent == null) {
-            browserVersion = BrowserVersion.CHROME;
+            browserVersion = BrowserVersion.FIREFOX_60;
         } else browserVersion = new BrowserVersion.BrowserVersionBuilder(BrowserVersion.FIREFOX_60).setUserAgent(userAgent).build();
 
         log.info("Spawning processes...");
@@ -152,7 +183,6 @@ public class YTViewBot implements Callable<Void> {
             viewBots[i] = new ViewBot(randy, urlQueuer, proxyQueuer, TimeUnit.SECONDS.toMillis(watchTime), TimeUnit.SECONDS.toMillis(watchTimeVariation), browserVersion, viewsGenerated).start();
         }
         log.info("Running.");
-        log.info(LOG_SPACER);
 
         Terminal terminal = TerminalBuilder.builder()
                 .name("YTViewBot")
@@ -161,7 +191,7 @@ public class YTViewBot implements Callable<Void> {
                 .build();
         terminal.enterRawMode();
         NonBlockingReader reader = terminal.reader();
-        log.setCarry(true, "[s]tatus [d]onate [c]lose");
+        //log.setCarry(true, "[s]tatus [d]onate [c]lose");
 
         while (true) {
             //System.out.println("[s]tatus [d]onate [c]lose");
@@ -171,12 +201,10 @@ public class YTViewBot implements Callable<Void> {
                         log.info(bot.getThread().getName() + " " + (bot.isRunning() ? "RUNNING" : "STOPPED"));
                     }
                     log.info("Total views generated: " + NumberFormat.getNumberInstance().format(viewsGenerated.get()));
-                    log.info(LOG_SPACER);
                     break;
                 case 'd':
                     log.info("BTC: 1FpywKn3H2CrGUR1tziq5wjhwLeXHSet9C");
                     log.info("BTH: bitcoincash:qz32f4h83dn9fpju594eafm4hytr528l4c4utgyw66");
-                    log.info(LOG_SPACER);
                     break;
                 case 'c':
                     log.info("Exiting...");
@@ -184,7 +212,6 @@ public class YTViewBot implements Callable<Void> {
                     break;
                 default:
                     log.warning("Invalid option key.");
-                    log.info(LOG_SPACER);
             }
         }
     }
