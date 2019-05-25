@@ -1,0 +1,3 @@
+#!/bin/sh
+./gradlew linux
+cp build/libs/ytviewbot /bin/ytviewbot
