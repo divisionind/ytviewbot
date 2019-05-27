@@ -13,6 +13,8 @@ You can also choose to install the project to more easily use it from the comman
 5. To install, complete steps 1 & 2 and run `sudo ./install`
 6. You may now use the command `ytviewbot` anywhere.
 
+### Using Windows?
+No sweat. You can run Linux on Windows. Just look up how to install the Windows Subsystem for Linux (WSL).
 
 ## Support
 If you like the project, please share the wealth. I'm poor. I need money. Pls help.
