@@ -24,9 +24,7 @@ import java.io.PrintStream;
  * Provides a print system that allows you to write to the bottom line of a console while still
  * printing lines. This is useful for console downloading, general progress monitoring, installations, etc.
  */
-public class StaticLine {
-
-    public static final String LOG_FORMAT = "[YTViewBot/%s] %s";
+public class StaticLine { // stolen from drew6017
 
     private PrintStream out; // stream to print with
     private String line;     // line to keep static
@@ -120,22 +118,6 @@ public class StaticLine {
             writew_space(m);
             out.print(this.line);
         } else out.println(m);
-    }
-
-    private synchronized void log(String message, String replace) { // e.g. [05:05:33] [YTViewBot/INFO] Running.
-        println(String.format(LOG_FORMAT, replace, message));
-    }
-
-    public synchronized void info(String message) {
-        log(message, "INFO");
-    }
-
-    public synchronized void warning(String message) {
-        log(message, "WARN");
-    }
-
-    public synchronized void severe(String message) {
-        log(message, "SEVERE");
     }
 
     private void enableCarry(String msg) {

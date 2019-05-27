@@ -19,17 +19,18 @@
 package com.anonymous.ytvb;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
-import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.jline.utils.*;
+import org.jline.utils.AttributedStringBuilder;
+import org.jline.utils.AttributedStyle;
+import org.jline.utils.NonBlockingReader;
 import picocli.CommandLine;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -43,10 +44,10 @@ import java.util.logging.Logger;
 @CommandLine.Command(name = "ytviewbot", version = "2019.0.1", description = "A bot to view youtube videos (or any site).", mixinStandardHelpOptions = true)
 public class YTViewBot implements Callable<Void> {
 
-    //@CommandLine.Parameters(index = "0", description = "list of URL(s) to view")
+    @CommandLine.Parameters(index = "0", description = "list of URL(s) to view")
     private File urls;
 
-    //@CommandLine.Parameters(index = "1", description = "list of proxies to use")
+    @CommandLine.Parameters(index = "1", description = "list of proxies to use")
     private File proxies;
 
     @CommandLine.Option(names = {"-w", "--watch"}, description = "how long to spend viewing a given URL in seconds")
@@ -64,80 +65,19 @@ public class YTViewBot implements Callable<Void> {
     @CommandLine.Option(names = {"-u", "--user-agent"}, description = "user agent to use for web calls")
     private String userAgent;
 
-    public static Logger log;
+    private static PrintStream systemOut;
+    private static OutputRedirect out;
+    private static OutputRedirect err;
 
-    private static String msg = "no key yet pressed";
+    static {
+        systemOut = System.out;
+        System.setOut(new PrintStream(out = new OutputRedirect()));
+        System.setErr(new PrintStream(err = new OutputRedirect()));
+    }
+
+    public static Logger log = Logger.getLogger("YTViewBot");
 
     public static void main(String[] args) {
-
-        try {
-            Terminal terminal = TerminalBuilder.builder()
-                    .name("YTViewBot")
-                    .jna(true)
-                    .system(true)
-                    .build();
-            terminal.enterRawMode();
-
-            Display display = new Display(terminal, true);
-            display.resize(terminal.getSize().getRows(), terminal.getSize().getColumns());
-            List<AttributedString> screen = new ArrayList<>();
-
-            new Thread(() -> {
-                NonBlockingReader reader = terminal.reader();
-                while (true) {
-                    int i;
-                    try {
-                        i = reader.read();
-                    } catch (IOException e) {
-                        i = -1;
-                    }
-                    msg = "Key pressed: " + i; // it works!
-                    //System.out.println("HAHAHAHAHHAHAA");
-                }
-            }).start();
-
-            while (true) {
-                Size size = terminal.getSize();
-                int rows = size.getRows();
-                int columns = size.getColumns();
-
-                display.resize(rows, columns);
-                display.clear();
-                display.reset();
-
-                AttributedStringBuilder title = new AttributedStringBuilder();
-                title.style(AttributedStyle.INVERSE);
-                String titleString = "YTViewBot - just a YouTube view bot ";
-                String titleString2 = "Views Generated: " + NumberFormat.getNumberInstance().format(39490);
-                title.append(titleString);
-                for (int i = 0;i<(columns - titleString.length() - titleString2.length());i++) title.append(" ");
-                title.append(titleString2);
-                screen.add(title.toAttributedString());
-
-                // draw processes
-
-
-                // draw donate message TODO move this to the right side
-                int numberOfElements = rows - screen.size() - 4;
-                for (int i = 0;i<numberOfElements;i++) {
-                    screen.add(new AttributedString("\n"));
-                }
-                screen.add(new AttributedStringBuilder()
-                        .style(AttributedStyle.INVERSE)
-                                        .append("                                                                ").toAttributedString());
-                screen.add(new AttributedString("Please donate using one of the crypto addresses below. Thanks! |"));
-                screen.add(new AttributedString(" > BTC: 1FpywKn3H2CrGUR1tziq5wjhwLeXHSet9C                     |"));
-                screen.add(new AttributedString(" > BTH: bitcoincash:qz32f4h83dn9fpju594eafm4hytr528l4c4utgyw66 |"));
-
-                display.update(screen, size.cursorPos(rows, columns));
-                screen.clear();
-                Thread.sleep(500L);
-            }
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        if (true) return;
         try {
             CommandLine.call(new YTViewBot(), args);
         } catch (Exception e) {
@@ -159,9 +99,18 @@ public class YTViewBot implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
-        //log = new StaticLine(System.out, null, false);
-        log = Logger.getLogger("YTViewBot");
-        System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tT] [%3$s/%4$s] %5$s %n");
+        Terminal terminal = TerminalBuilder.builder()
+                .name("YTViewBot")
+                .jna(true)
+                .system(true)
+                .build();
+        terminal.enterRawMode();
+
+        StaticLine staticLine = new StaticLine(systemOut, "[s]tatus [d]onate [c]lose");
+        out.setStaticLine(staticLine);
+        err.setStaticLine(staticLine);
+
+        System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tT %3$s/%4$s] %5$s %n");
         log.info("Initializing...");
 
         urlQueuer = new URLQueuer(urls);
@@ -183,35 +132,64 @@ public class YTViewBot implements Callable<Void> {
         }
         log.info("Running.");
 
-        Terminal terminal = TerminalBuilder.builder()
-                .name("YTViewBot")
-                .jna(true)
-                .system(true)
-                .build();
-        terminal.enterRawMode();
         NonBlockingReader reader = terminal.reader();
-        //log.setCarry(true, "[s]tatus [d]onate [c]lose");
 
         while (true) {
-            //System.out.println("[s]tatus [d]onate [c]lose");
             switch (reader.read()) {
                 case 's':
+                    log.info(new AttributedStringBuilder()
+                            .style(AttributedStyle.INVERSE)
+                            .append("Status").toAnsi());
                     for (ViewBot bot : viewBots) {
-                        log.info(bot.getThread().getName() + " " + (bot.isRunning() ? "RUNNING" : "STOPPED"));
+                        log.info(String.format("%s - %s", bot.getThread().getName(), bot.isRunning() ? "RUNNING" : "STOPPED"));
                     }
-                    log.info("Total views generated: " + NumberFormat.getNumberInstance().format(viewsGenerated.get()));
+                    log.info(String.format("Views Generated: %s", NumberFormat.getNumberInstance().format(viewsGenerated.get())));
+                    log.info("-----------------------------------------------------------");
                     break;
                 case 'd':
+                    log.info(new AttributedStringBuilder()
+                            .style(AttributedStyle.INVERSE)
+                            .append("Donation Info").toAnsi());
                     log.info("BTC: 1FpywKn3H2CrGUR1tziq5wjhwLeXHSet9C");
                     log.info("BTH: bitcoincash:qz32f4h83dn9fpju594eafm4hytr528l4c4utgyw66");
+                    log.info("-----------------------------------------------------------");
                     break;
                 case 'c':
-                    log.info("Exiting...");
+                    out.staticLine.setCarry(false, "Exiting... Have a nice day!");
                     System.exit(0);
                     break;
                 default:
-                    log.warning("Invalid option key.");
+                    log.warning("Invalid key command.");
             }
+        }
+    }
+
+    private static class OutputRedirect extends OutputStream {
+
+        private StaticLine staticLine;
+        private StringBuilder sb;
+
+        public OutputRedirect() {
+            this.staticLine = null;
+            this.sb = new StringBuilder();
+        }
+
+        @Override
+        public final void write(int i) throws IOException {
+            char c = (char) i;
+            if(c == '\r' || c == '\n') {
+                if(sb.length()>0) {
+                    // fixes picocli not printing
+                    if (staticLine == null) {
+                        systemOut.println(sb.toString());
+                    } else staticLine.println(sb.toString());
+                    sb = new StringBuilder();
+                }
+            } else sb.append(c);
+        }
+
+        public void setStaticLine(StaticLine staticLine) {
+            this.staticLine = staticLine;
         }
     }
 }
