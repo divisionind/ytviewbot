@@ -18,7 +18,6 @@
 
 package com.anonymous.ytvb;
 
-import com.gargoylesoftware.htmlunit.BrowserVersion;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedStringBuilder;
@@ -36,6 +35,32 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
+
+/*
+        TODO
+        Vary randomly each video request:
+            - local ip address (maybe just disable javascript/WebRTC)
+            - user agent
+            - browser type
+            - screen resolution
+
+        Vary randomly every few requests:
+            - public ip address (tor/proxy)
+
+        NOTE: YOU CAN SOLVE ALL OF THESE PROBLEMS USING THE TOR BROWSER WITH SELENIUM!!!!
+        MAYBE START WITH JUST THIS?
+
+        Tor Browser w/ Selenium:
+            - https://medium.com/@manivannan_data/selenium-with-tor-browser-using-python-7b3606b8c55c
+            - https://kushaldas.in/posts/tor-browser-and-selenium.html
+     */
+
+    /*
+        How to use extensions: https://sites.google.com/a/chromium.org/chromedriver/extensions
+        Change some settings dynamically: https://www.automation99.com/2017/06/dynamically-changing-proxy-in-browsers.html
+        Info on chrome driver (including installation): https://github.com/SeleniumHQ/selenium/wiki/ChromeDriver
+        More on modifying capability settings: https://github.com/machinepublishers/jbrowserdriver
+     */
 
 // see https://www.linuxuprising.com/2018/10/how-to-install-and-use-tor-as-proxy-in.html for tor proxy
 // or https://github.com/dgoulet/torsocks
@@ -119,16 +144,13 @@ public class YTViewBot implements Callable<Void> {
         randy = new Random();
         viewsGenerated = new AtomicLong(0);
 
-        // create browser version info
-        if (userAgent == null) {
-            browserVersion = BrowserVersion.FIREFOX_60;
-        } else browserVersion = new BrowserVersion.BrowserVersionBuilder(BrowserVersion.FIREFOX_60).setUserAgent(userAgent).build();
+        // TODO making config where users can specify browser link types, spawn one of these browsers for each process, (include custom one where tor proxy leads to driver of choice?), see if can set proxy while running chrome driver
 
         log.info("Spawning processes...");
 
         // spawn processes
         for (int i = 0;i<processes;i++) {
-            viewBots[i] = new ViewBot(randy, urlQueuer, proxyQueuer, TimeUnit.SECONDS.toMillis(watchTime), TimeUnit.SECONDS.toMillis(watchTimeVariation), browserVersion, viewsGenerated).start();
+            viewBots[i] = new ViewBot(randy, urlQueuer, proxyQueuer, TimeUnit.SECONDS.toMillis(watchTime), TimeUnit.SECONDS.toMillis(watchTimeVariation), viewsGenerated).start();
         }
         log.info("Running.");
 

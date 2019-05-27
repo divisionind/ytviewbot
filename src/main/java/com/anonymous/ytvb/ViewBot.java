@@ -18,11 +18,6 @@
 
 package com.anonymous.ytvb;
 
-import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.WebRequest;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-
 import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
@@ -39,13 +34,12 @@ public class ViewBot implements Runnable {
     private ProxyHostQueuer proxyQueuer;
     private long watchTime;
     private long watchTimeVariation;
-    private WebClient browser;
     private Random randy;
     private boolean running;
     private Thread thread;
     private AtomicLong viewsGenerated;
 
-    public ViewBot(Random randy, URLQueuer urlQueuer, ProxyHostQueuer proxyQueuer, long watchTime, long watchTimeVariation, BrowserVersion browserVersion, AtomicLong viewsGenerated) {
+    public ViewBot(Random randy, URLQueuer urlQueuer, ProxyHostQueuer proxyQueuer, long watchTime, long watchTimeVariation, AtomicLong viewsGenerated) {
         this.urlQueuer = urlQueuer;
         this.proxyQueuer = proxyQueuer;
         this.watchTime = watchTime;
@@ -53,7 +47,6 @@ public class ViewBot implements Runnable {
         this.randy = randy;
         this.running = false;
         this.viewsGenerated = viewsGenerated;
-        browser = new WebClient(browserVersion);
     }
 
     public Thread getThread() {
@@ -85,19 +78,12 @@ public class ViewBot implements Runnable {
     }
 
     private void viewUrl() throws IOException, InterruptedException {
-        WebRequest webRequest = new WebRequest(urlQueuer.getObject());
-        ProxyHost proxy = proxyQueuer.getObject();
-        webRequest.setProxyHost(proxy.getHost());
-        webRequest.setProxyPort(proxy.getPort());
-        webRequest.setSocksProxy(proxy.isSocks());
-        HtmlPage page = browser.getPage(webRequest);
+
         Thread.sleep((watchTime + watchTimeVariation) - (long)randy.nextInt((int)(watchTimeVariation * 2L) + 1));
-        page.cleanUp();
         viewsGenerated.incrementAndGet();
     }
 
     public void shutdown() {
         running = false;
-        browser.close();
     }
 }
