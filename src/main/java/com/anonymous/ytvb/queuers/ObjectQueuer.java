@@ -16,7 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.anonymous.ytvb;
+package com.anonymous.ytvb.queuers;
+
+import com.anonymous.ytvb.YTViewBot;
 
 import java.io.File;
 import java.io.FileNotFoundException;

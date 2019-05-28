@@ -16,26 +16,32 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.anonymous.ytvb;
+package com.anonymous.ytvb.queuers;
+
+import com.anonymous.ytvb.ProxyHost;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.MalformedURLException;
-import java.net.URL;
 
-public class URLQueuer extends ObjectQueuer<URL> {
+public class ProxyHostQueuer extends ObjectQueuer<ProxyHost> {
 
-    public URLQueuer(File stringFile) throws FileNotFoundException {
-        super(stringFile);
+    private static final String SEPARATOR = " ";
+
+    public ProxyHostQueuer(File objectFile) throws FileNotFoundException {
+        super(objectFile);
     }
 
     @Override
-    public URL processElement(String element) throws MalformedURLException {
-        return new URL(element);
+    public ProxyHost processElement(String element) throws Exception {
+        if (!element.contains(SEPARATOR)) throw new Exception();
+        String[] parts = element.split(SEPARATOR);
+        if (parts.length != 3) throw new Exception();
+
+        return new ProxyHost(parts[0], Integer.parseInt(parts[1]), parts[2].equalsIgnoreCase("y"));
     }
 
     @Override
     public String parseErrorMessage() {
-        return "Error parsing url at line %s";
+        return "Error parsing proxy host at line %s";
     }
 }

@@ -18,6 +18,9 @@
 
 package com.anonymous.ytvb;
 
+import com.anonymous.ytvb.queuers.ProxyHostQueuer;
+import com.anonymous.ytvb.queuers.URLQueuer;
+
 import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;

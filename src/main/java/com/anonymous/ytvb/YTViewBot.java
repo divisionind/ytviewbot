@@ -18,6 +18,8 @@
 
 package com.anonymous.ytvb;
 
+import com.anonymous.ytvb.queuers.ProxyHostQueuer;
+import com.anonymous.ytvb.queuers.URLQueuer;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedStringBuilder;
@@ -75,8 +77,11 @@ public class YTViewBot implements Callable<Void> {
     @CommandLine.Parameters(index = "1", description = "list of proxies to use")
     private File proxies;
 
-    @CommandLine.Option(names = {"-w", "--watch"}, description = "how long to spend viewing a given URL in seconds")
-    private int watchTime = 10;
+    @CommandLine.Parameters(index = "2", description = "list user agents to screen resolutions to use (simulate different devices)")
+    private File identities;
+
+    @CommandLine.Option(names = {"-w", "--watch"}, description = "how long to spend viewing a given URL in seconds (after load time)")
+    private int watchTime = 6;
 
     @CommandLine.Option(names = {"-v", "--watch-variation"}, description = "how much to vary watch time by + or - in seconds")
     private int watchTimeVariation = 2;
@@ -86,9 +91,6 @@ public class YTViewBot implements Callable<Void> {
 
     //@CommandLine.Option(names = {"-s", "--view-switch"}, description = "number of times to view the url before switching proxies")
     //private int viewSwitch = 4;
-
-    @CommandLine.Option(names = {"-u", "--user-agent"}, description = "user agent to use for web calls")
-    private String userAgent;
 
     private static PrintStream systemOut;
     private static OutputRedirect out;
@@ -118,7 +120,6 @@ public class YTViewBot implements Callable<Void> {
     private URLQueuer urlQueuer;
     private ProxyHostQueuer proxyQueuer;
     private ViewBot[] viewBots;
-    private BrowserVersion browserVersion;
     private Random randy;
     private AtomicLong viewsGenerated;
 
