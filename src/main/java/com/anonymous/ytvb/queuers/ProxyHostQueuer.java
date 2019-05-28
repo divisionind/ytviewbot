@@ -23,7 +23,7 @@ import com.anonymous.ytvb.ProxyHost;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-public class ProxyHostQueuer extends ObjectQueuer<ProxyHost> {
+public class ProxyHostQueuer extends SequentialFileQueuer<ProxyHost> {
 
     private static final String SEPARATOR = " ";
 

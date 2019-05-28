@@ -18,24 +18,30 @@
 
 package com.anonymous.ytvb.queuers;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
-public class URLQueuer extends SequentialFileQueuer<URL> {
+public class RandomQueuer<T> implements Queuer<T> {
 
-    public URLQueuer(File stringFile) throws FileNotFoundException {
-        super(stringFile);
+    private List<T> objects;
+    private Random randy;
+
+    public RandomQueuer(List<T> objects, Random randy) {
+        this.objects = objects;
+        this.randy = randy;
+    }
+
+    public RandomQueuer(Random randy) {
+        this(new ArrayList<>(), randy);
+    }
+
+    public List<T> getObjects() {
+        return objects;
     }
 
     @Override
-    public URL processElement(String element) throws MalformedURLException {
-        return new URL(element);
-    }
-
-    @Override
-    public String parseErrorMessage() {
-        return "Error parsing url at line %s";
+    public T getObject() {
+        return objects.get(randy.nextInt(objects.size()));
     }
 }

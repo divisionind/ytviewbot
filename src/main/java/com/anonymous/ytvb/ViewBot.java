@@ -18,10 +18,10 @@
 
 package com.anonymous.ytvb;
 
-import com.anonymous.ytvb.queuers.ProxyHostQueuer;
-import com.anonymous.ytvb.queuers.URLQueuer;
+import com.anonymous.ytvb.queuers.Queuer;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -33,8 +33,8 @@ public class ViewBot implements Runnable {
         return viewBotFactory.newThread(bot);
     }
 
-    private URLQueuer urlQueuer;
-    private ProxyHostQueuer proxyQueuer;
+    private Queuer<URL> urlQueuer;
+    private Queuer<ProxyHost> proxyQueuer;
     private long watchTime;
     private long watchTimeVariation;
     private Random randy;
@@ -42,7 +42,7 @@ public class ViewBot implements Runnable {
     private Thread thread;
     private AtomicLong viewsGenerated;
 
-    public ViewBot(Random randy, URLQueuer urlQueuer, ProxyHostQueuer proxyQueuer, long watchTime, long watchTimeVariation, AtomicLong viewsGenerated) {
+    public ViewBot(Random randy, Queuer<URL> urlQueuer, Queuer<ProxyHost> proxyQueuer, long watchTime, long watchTimeVariation, AtomicLong viewsGenerated) {
         this.urlQueuer = urlQueuer;
         this.proxyQueuer = proxyQueuer;
         this.watchTime = watchTime;

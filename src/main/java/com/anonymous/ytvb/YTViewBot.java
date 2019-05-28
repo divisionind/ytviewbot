@@ -19,6 +19,7 @@
 package com.anonymous.ytvb;
 
 import com.anonymous.ytvb.queuers.ProxyHostQueuer;
+import com.anonymous.ytvb.queuers.Queuer;
 import com.anonymous.ytvb.queuers.URLQueuer;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
@@ -31,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.URL;
 import java.text.NumberFormat;
 import java.util.Random;
 import java.util.concurrent.Callable;
@@ -74,10 +76,7 @@ public class YTViewBot implements Callable<Void> {
     @CommandLine.Parameters(index = "0", description = "list of URL(s) to view")
     private File urls;
 
-    @CommandLine.Parameters(index = "1", description = "list of proxies to use")
-    private File proxies;
-
-    @CommandLine.Parameters(index = "2", description = "list user agents to screen resolutions to use (simulate different devices)")
+    @CommandLine.Parameters(index = "1", description = "list user agents to screen resolutions to use (simulate different devices)")
     private File identities;
 
     @CommandLine.Option(names = {"-w", "--watch"}, description = "how long to spend viewing a given URL in seconds (after load time)")
@@ -88,6 +87,9 @@ public class YTViewBot implements Callable<Void> {
 
     @CommandLine.Option(names = {"-p", "--processes"}, description = "number of process to view at the same time")
     private int processes = 4;
+
+    @CommandLine.Option(names = {"-P", "--proxies"}, description = "list of proxies to use (if specified, tor is not required)")
+    private File proxies;
 
     //@CommandLine.Option(names = {"-s", "--view-switch"}, description = "number of times to view the url before switching proxies")
     //private int viewSwitch = 4;
@@ -117,8 +119,8 @@ public class YTViewBot implements Callable<Void> {
         ex.printStackTrace();
     }
 
-    private URLQueuer urlQueuer;
-    private ProxyHostQueuer proxyQueuer;
+    private Queuer<URL> urlQueuer;
+    private Queuer<ProxyHost> proxyQueuer;
     private ViewBot[] viewBots;
     private Random randy;
     private AtomicLong viewsGenerated;

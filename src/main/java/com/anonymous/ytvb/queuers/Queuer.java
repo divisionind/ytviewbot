@@ -18,24 +18,10 @@
 
 package com.anonymous.ytvb.queuers;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.MalformedURLException;
-import java.net.URL;
+public interface Queuer<T> {
 
-public class URLQueuer extends SequentialFileQueuer<URL> {
-
-    public URLQueuer(File stringFile) throws FileNotFoundException {
-        super(stringFile);
-    }
-
-    @Override
-    public URL processElement(String element) throws MalformedURLException {
-        return new URL(element);
-    }
-
-    @Override
-    public String parseErrorMessage() {
-        return "Error parsing url at line %s";
-    }
+    /**
+     * Returns an object from a queue. Exact behavior depends on what type of queue.
+     */
+    T getObject();
 }

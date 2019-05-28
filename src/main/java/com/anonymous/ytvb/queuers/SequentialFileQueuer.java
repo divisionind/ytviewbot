@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Used for multi-thread-safe retrieving of strings from a pool
  */
-public abstract class ObjectQueuer<T> {
+public abstract class SequentialFileQueuer<T> implements Queuer<T> {
 
     public abstract T processElement(String element) throws Exception;
 
@@ -41,7 +41,7 @@ public abstract class ObjectQueuer<T> {
     private List<T> objects;
     private AtomicInteger ai;
 
-    public ObjectQueuer(File objectFile) throws FileNotFoundException {
+    public SequentialFileQueuer(File objectFile) throws FileNotFoundException {
         ai = new AtomicInteger(0);
         objects = new ArrayList<>();
 
@@ -59,6 +59,7 @@ public abstract class ObjectQueuer<T> {
         }
     }
 
+    @Override
     public T getObject() {
         int on = ai.getAndIncrement();
         if (on >= objects.size()) {
