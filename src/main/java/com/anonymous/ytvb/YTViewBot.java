@@ -20,6 +20,7 @@ package com.anonymous.ytvb;
 
 import com.anonymous.ytvb.queuers.ProxyHostQueuer;
 import com.anonymous.ytvb.queuers.Queuer;
+import com.anonymous.ytvb.queuers.RandomQueuer;
 import com.anonymous.ytvb.queuers.URLQueuer;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
@@ -34,6 +35,8 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URL;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -76,8 +79,11 @@ public class YTViewBot implements Callable<Void> {
     @CommandLine.Parameters(index = "0", description = "list of URL(s) to view")
     private File urls;
 
-    @CommandLine.Parameters(index = "1", description = "list user agents to screen resolutions to use (simulate different devices)")
+    @CommandLine.Option(names = {"-i", "--identities"}, description = "list user agents to screen resolutions to use (simulate different devices)")
     private File identities;
+
+    @CommandLine.Option(names = {"-P", "--proxies"}, description = "list of proxies to use (if specified, tor is not required)")
+    private File proxies;
 
     @CommandLine.Option(names = {"-w", "--watch"}, description = "how long to spend viewing a given URL in seconds (after load time)")
     private int watchTime = 6;
@@ -88,8 +94,14 @@ public class YTViewBot implements Callable<Void> {
     @CommandLine.Option(names = {"-p", "--processes"}, description = "number of process to view at the same time")
     private int processes = 4;
 
-    @CommandLine.Option(names = {"-P", "--proxies"}, description = "list of proxies to use (if specified, tor is not required)")
-    private File proxies;
+    @CommandLine.Option(names = {"-t", "--tor-proxies"}, description = "number of tor proxies to spawn, warning: increasing this will decrease anonymity") // Increasing this will decrease anonymity while allow you to raise the refresh interval.
+    private int torProxies = 1;
+
+    @CommandLine.Option(names = {"-r", "--refresh-int"}, description = "number of views to generate every tor refresh")
+    private int torRefreshInterval = 50;
+
+    @CommandLine.Option(names = {"-R", "--refresh-variation"}, description = "how much to vary the refresh interval by + or - in number of views")
+    private int torRefreshIntervalVariation = 10;
 
     //@CommandLine.Option(names = {"-s", "--view-switch"}, description = "number of times to view the url before switching proxies")
     //private int viewSwitch = 4;
@@ -124,6 +136,7 @@ public class YTViewBot implements Callable<Void> {
     private ViewBot[] viewBots;
     private Random randy;
     private AtomicLong viewsGenerated;
+    private boolean usingTor;
 
     @Override
     public Void call() throws Exception {
@@ -141,8 +154,27 @@ public class YTViewBot implements Callable<Void> {
         System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tT %3$s/%4$s] %5$s %n");
         log.info("Initializing...");
 
+        if (proxies == null) {
+            usingTor = true;
+
+            log.info(String.format("Proxy list not specified. Generating and using %s tor proxies...", torProxies));
+
+            List<ProxyHost> proxyHosts = new ArrayList<>();
+            // TODO spawn tor processes, port in proxy configs
+
+            proxyQueuer = new RandomQueuer<>(proxyHosts, randy);
+        } else {
+            usingTor = false;
+            proxyQueuer = new ProxyHostQueuer(proxies);
+        }
+
+        if (identities == null) {
+            // TODO use internal identities list, e.g. InputStream
+        } else {
+            log.info("Identities list specified. Using that instead of the internal one...");
+        }
+
         urlQueuer = new URLQueuer(urls);
-        proxyQueuer = new ProxyHostQueuer(proxies);
         viewBots = new ViewBot[processes];
         randy = new Random();
         viewsGenerated = new AtomicLong(0);
