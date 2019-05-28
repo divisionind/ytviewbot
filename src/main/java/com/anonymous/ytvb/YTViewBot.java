@@ -103,9 +103,6 @@ public class YTViewBot implements Callable<Void> {
     @CommandLine.Option(names = {"-R", "--refresh-variation"}, description = "how much to vary the refresh interval by + or - in number of views")
     private int torRefreshIntervalVariation = 10;
 
-    //@CommandLine.Option(names = {"-s", "--view-switch"}, description = "number of times to view the url before switching proxies")
-    //private int viewSwitch = 4;
-
     private static PrintStream systemOut;
     private static OutputRedirect out;
     private static OutputRedirect err;
