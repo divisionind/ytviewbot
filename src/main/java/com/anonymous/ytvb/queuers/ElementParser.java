@@ -66,4 +66,8 @@ public abstract class ElementParser<T> {
         }
         fr.close();
     }
+
+    public List<T> getObjects() {
+        return objects;
+    }
 }

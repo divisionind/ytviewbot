@@ -28,7 +28,7 @@ import java.util.Random;
 
 public class IdentityQueuer extends RandomQueuer<Identity> {
 
-    private static final String SEPARATOR1 = "|";
+    private static final String SEPARATOR1 = "=";
     private static final String SEPARATOR2 = "x";
 
     public IdentityQueuer(List<Identity> objects, Random randy) {

@@ -48,13 +48,17 @@ public class TorProxyHost extends ProxyHost {
         this.refreshProxyAt.set(refreshPoint);
 
         // restart tor process, gets a new public ip address
-        process.destroyForcibly();
-        process.waitFor();
+        stop();
         start();
     }
 
     public void waitIfResetting() throws InterruptedException {
         while (starting) Thread.sleep(STARTED_POLLING_RATE);
+    }
+
+    public void stop() throws InterruptedException {
+        process.destroyForcibly();
+        process.waitFor();
     }
 
     public void start() throws IOException {
@@ -69,7 +73,7 @@ public class TorProxyHost extends ProxyHost {
                 InputStream cfin;
                 if (config != null && config.exists()) {
                     cfin = new FileInputStream(config);
-                } else cfin = getClass().getResourceAsStream("assets/torrc");
+                } else cfin = getClass().getResourceAsStream("/assets/torrc");
 
                 // write derived file from source with mods
                 try (FileWriter fw = new FileWriter(torrcDerived)) {

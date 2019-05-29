@@ -203,7 +203,7 @@ public class YTViewBot implements Callable<Void> {
 
         Reader identityReader;
         if (identities == null) {
-            identityReader = new InputStreamReader(getClass().getResourceAsStream("assets/identities.txt"));
+            identityReader = new InputStreamReader(getClass().getResourceAsStream("/assets/identities.txt"));
         } else {
             log.info("Identities list specified. Using that instead of the internal one...");
             identityReader = new FileReader(identities);
@@ -214,7 +214,7 @@ public class YTViewBot implements Callable<Void> {
 
         // extract extensions
         File extNoScript = new File(TEMP_FOLDER, "NoScript.xpi");
-        Files.copy(getClass().getResourceAsStream("assets/NoScript.xpi"), extNoScript.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(getClass().getResourceAsStream("/assets/NoScript.xpi"), extNoScript.toPath(), StandardCopyOption.REPLACE_EXISTING);
         extNoScript.deleteOnExit();
 
         // stops awful log spam by selenium
@@ -228,6 +228,15 @@ public class YTViewBot implements Callable<Void> {
         // add shutdown hook to stop selenium instances which would persist otherwise
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             for (ViewBot bot : viewBots) bot.shutdown();
+
+            // ensures tor processes close no matter what
+            if (proxyQueuer.getObject() instanceof TorProxyHost) {
+                ((ProxyHostQueuer)proxyQueuer).getObjects().forEach(v -> {
+                    try {
+                        ((TorProxyHost)v).stop();
+                    } catch (Exception e) { }
+                });
+            }
         }));
 
         log.info("Running.");
