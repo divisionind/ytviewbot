@@ -16,6 +16,9 @@ You can also choose to install the project to more easily use it from the comman
 ### Using Windows?
 No sweat. You can run Linux on Windows. Just look up how to install the Windows Subsystem for Linux (WSL).
 
+### Using Mac?
+Use a better OS.
+
 ## Support
 If you like the project, please share the wealth. I'm poor. I need money. Pls help.
 
