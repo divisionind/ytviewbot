@@ -20,22 +20,31 @@ package com.anonymous.ytvb.queuers;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class URLQueuer extends SequentialQueuer<URL> {
+/**
+ * Used for multi-thread-safe retrieving of strings from a pool
+ */
+public abstract class SequentialQueuer<T> extends ElementParser<T> implements Queuer<T> {
 
-    public URLQueuer(File stringFile) throws IOException {
-        super(stringFile);
+    private AtomicInteger ai = new AtomicInteger(0);
+
+    public SequentialQueuer(List<T> objects) {
+        super(objects);
+    }
+
+    public SequentialQueuer(File file) throws IOException {
+        super(file);
     }
 
     @Override
-    public URL processElement(String element) throws MalformedURLException {
-        return new URL(element);
-    }
-
-    @Override
-    public String parseErrorMessage() {
-        return "Error parsing url at line %s";
+    public T getObject() {
+        int on = ai.getAndIncrement();
+        if (on >= objects.size()) {
+            ai.set(0);
+            on = 0;
+        }
+        return objects.get(on);
     }
 }

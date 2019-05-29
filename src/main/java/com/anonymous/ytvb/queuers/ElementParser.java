@@ -20,52 +20,44 @@ package com.anonymous.ytvb.queuers;
 
 import com.anonymous.ytvb.YTViewBot;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Used for multi-thread-safe retrieving of strings from a pool
- */
-public abstract class SequentialFileQueuer<T> implements Queuer<T> {
+public abstract class ElementParser<T> {
 
     public abstract T processElement(String element) throws Exception;
 
     public abstract String parseErrorMessage();
 
-    private List<T> objects;
-    private AtomicInteger ai;
+    protected List<T> objects;
 
-    public SequentialFileQueuer(File objectFile) throws FileNotFoundException {
-        ai = new AtomicInteger(0);
+    public ElementParser(List<T> objects) {
+        this.objects = objects;
+    }
+
+    public ElementParser(File file) throws IOException {
+        this(new FileReader(file));
+    }
+
+    public ElementParser(Reader fr) throws IOException {
         objects = new ArrayList<>();
 
-        try (Scanner s = new Scanner(new FileReader(objectFile))) {
+        try (Scanner s = new Scanner(fr)) {
             int i = 0;
             NumberFormat numberFormatter = NumberFormat.getNumberInstance();
             while (s.hasNext()) {
                 i++;
                 try {
-                    objects.add(processElement(s.nextLine()));
+                    T element = processElement(s.nextLine());
+                    if (element != null) objects.add(element);
                 } catch (Exception e) {
                     YTViewBot.log.severe(String.format(parseErrorMessage(), numberFormatter.format(i)));
                 }
             }
         }
-    }
-
-    @Override
-    public T getObject() {
-        int on = ai.getAndIncrement();
-        if (on >= objects.size()) {
-            ai.set(0);
-            on = 0;
-        }
-        return objects.get(on);
+        fr.close();
     }
 }

@@ -18,10 +18,7 @@
 
 package com.anonymous.ytvb;
 
-import com.anonymous.ytvb.queuers.ProxyHostQueuer;
-import com.anonymous.ytvb.queuers.Queuer;
-import com.anonymous.ytvb.queuers.RandomQueuer;
-import com.anonymous.ytvb.queuers.URLQueuer;
+import com.anonymous.ytvb.queuers.*;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedStringBuilder;
@@ -29,10 +26,7 @@ import org.jline.utils.AttributedStyle;
 import org.jline.utils.NonBlockingReader;
 import picocli.CommandLine;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -130,6 +124,7 @@ public class YTViewBot implements Callable<Void> {
 
     private Queuer<URL> urlQueuer;
     private Queuer<ProxyHost> proxyQueuer;
+    private Queuer<Identity> identityQueuer;
     private ViewBot[] viewBots;
     private Random randy;
     private AtomicLong viewsGenerated;
@@ -159,17 +154,20 @@ public class YTViewBot implements Callable<Void> {
             List<ProxyHost> proxyHosts = new ArrayList<>();
             // TODO spawn tor processes, port in proxy configs
 
-            proxyQueuer = new RandomQueuer<>(proxyHosts, randy);
+            proxyQueuer = new ProxyHostQueuer(proxyHosts); // maybe use random queuer here?
         } else {
             usingTor = false;
             proxyQueuer = new ProxyHostQueuer(proxies);
         }
 
+        Reader identityReader;
         if (identities == null) {
-            // TODO use internal identities list, e.g. InputStream
+            identityReader = new InputStreamReader(getClass().getResourceAsStream("assets/identities.txt"));
         } else {
             log.info("Identities list specified. Using that instead of the internal one...");
+            identityReader = new FileReader(identities);
         }
+        identityQueuer = new IdentityQueuer(identityReader, randy);
 
         urlQueuer = new URLQueuer(urls);
         viewBots = new ViewBot[processes];

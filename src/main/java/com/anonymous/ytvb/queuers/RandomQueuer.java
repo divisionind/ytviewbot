@@ -27,6 +27,10 @@ public class RandomQueuer<T> implements Queuer<T> {
     private List<T> objects;
     private Random randy;
 
+    public RandomQueuer(ElementParser<T> parser, Random randy) {
+        this(parser.objects, randy);
+    }
+
     public RandomQueuer(List<T> objects, Random randy) {
         this.objects = objects;
         this.randy = randy;

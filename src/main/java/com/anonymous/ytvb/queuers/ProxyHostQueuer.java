@@ -21,13 +21,18 @@ package com.anonymous.ytvb.queuers;
 import com.anonymous.ytvb.ProxyHost;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.List;
 
-public class ProxyHostQueuer extends SequentialFileQueuer<ProxyHost> {
+public class ProxyHostQueuer extends SequentialQueuer<ProxyHost> {
 
     private static final String SEPARATOR = " ";
 
-    public ProxyHostQueuer(File objectFile) throws FileNotFoundException {
+    public ProxyHostQueuer(List<ProxyHost> objects) {
+        super(objects);
+    }
+
+    public ProxyHostQueuer(File objectFile) throws IOException {
         super(objectFile);
     }
 

@@ -16,26 +16,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.anonymous.ytvb.queuers;
+package com.anonymous.ytvb;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.awt.*;
 
-public class URLQueuer extends SequentialQueuer<URL> {
+public class Identity {
 
-    public URLQueuer(File stringFile) throws IOException {
-        super(stringFile);
+    private String userAgent;
+    private Dimension screenSize;
+
+    public Identity(String userAgent, int width, int height) {
+        this(userAgent, new Dimension(width, height));
     }
 
-    @Override
-    public URL processElement(String element) throws MalformedURLException {
-        return new URL(element);
+    public Identity(String userAgent, Dimension screenSize) {
+        this.userAgent = userAgent;
+        this.screenSize = screenSize;
     }
 
-    @Override
-    public String parseErrorMessage() {
-        return "Error parsing url at line %s";
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public Dimension getScreenSize() {
+        return screenSize;
     }
 }
