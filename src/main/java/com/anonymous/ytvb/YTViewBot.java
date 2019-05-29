@@ -18,7 +18,10 @@
 
 package com.anonymous.ytvb;
 
-import com.anonymous.ytvb.queuers.*;
+import com.anonymous.ytvb.queuers.IdentityQueuer;
+import com.anonymous.ytvb.queuers.ProxyHostQueuer;
+import com.anonymous.ytvb.queuers.Queuer;
+import com.anonymous.ytvb.queuers.URLQueuer;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedStringBuilder;

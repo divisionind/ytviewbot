@@ -18,30 +18,23 @@
 
 package com.anonymous.ytvb.queuers;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.io.Reader;
 import java.util.List;
 import java.util.Random;
 
-public class RandomQueuer<T> implements Queuer<T> {
+public abstract class RandomQueuer<T> extends ElementParser<T> implements Queuer<T> {
 
-    private List<T> objects;
     private Random randy;
 
-    public RandomQueuer(ElementParser<T> parser, Random randy) {
-        this(parser.objects, randy);
-    }
-
     public RandomQueuer(List<T> objects, Random randy) {
-        this.objects = objects;
+        super(objects);
         this.randy = randy;
     }
 
-    public RandomQueuer(Random randy) {
-        this(new ArrayList<>(), randy);
-    }
-
-    public List<T> getObjects() {
-        return objects;
+    public RandomQueuer(Reader fr, Random randy) throws IOException {
+        super(fr);
+        this.randy = randy;
     }
 
     @Override

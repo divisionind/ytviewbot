@@ -23,6 +23,7 @@ import com.anonymous.ytvb.Identity;
 import java.awt.*;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.List;
 import java.util.Random;
 
 public class IdentityQueuer extends RandomQueuer<Identity> {
@@ -30,32 +31,29 @@ public class IdentityQueuer extends RandomQueuer<Identity> {
     private static final String SEPARATOR1 = "|";
     private static final String SEPARATOR2 = "x";
 
-    public IdentityQueuer(Reader reader, Random randy) throws IOException {
-        super(new IdentityParser(reader), randy);
+    public IdentityQueuer(List<Identity> objects, Random randy) {
+        super(objects, randy);
     }
 
-    private static class IdentityParser extends ElementParser<Identity> {
+    public IdentityQueuer(Reader fr, Random randy) throws IOException {
+        super(fr, randy);
+    }
 
-        private IdentityParser(Reader fr) throws IOException {
-            super(fr);
-        }
+    @Override
+    public Identity processElement(String element) throws Exception {
+        if (element.startsWith("#")) return null;
+        if (!element.contains(SEPARATOR1)) throw new Exception();
+        String[] parts = element.split(SEPARATOR1);
 
-        @Override
-        public Identity processElement(String element) throws Exception {
-            if (element.startsWith("#")) return null;
-            if (!element.contains(SEPARATOR1)) throw new Exception();
-            String[] parts = element.split(SEPARATOR1);
+        if (parts.length != 2) throw new Exception();
+        if (!parts[1].contains(SEPARATOR2)) throw new Exception();
+        String[] dimensions = parts[1].split(SEPARATOR2);
 
-            if (parts.length != 2) throw new Exception();
-            if (!parts[1].contains(SEPARATOR2)) throw new Exception();
-            String[] dimensions = parts[1].split(SEPARATOR2);
+        return new Identity(parts[0], new Dimension(Integer.parseInt(dimensions[0]), Integer.parseInt(dimensions[1])));
+    }
 
-            return new Identity(parts[0], new Dimension(Integer.parseInt(dimensions[0]), Integer.parseInt(dimensions[1])));
-        }
-
-        @Override
-        public String parseErrorMessage() {
-            return "Error parsing identity at line %s";
-        }
+    @Override
+    public String parseErrorMessage() {
+        return "Error parsing identity at line %s";
     }
 }
