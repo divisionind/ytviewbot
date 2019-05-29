@@ -84,6 +84,9 @@ public class YTViewBot implements Callable<Void> {
     @CommandLine.Option(names = {"-P", "--proxies"}, description = "list of proxies to use (if specified, tor is not required)")
     private File proxies;
 
+    @CommandLine.Option(names = {"-c", "--config-tor"}, description = "location of tor config (if not specified, will use internal)")
+    private File torrc;
+
     @CommandLine.Option(names = {"-w", "--watch"}, description = "how long to spend viewing a given URL in seconds (after load time)")
     private int watchTime = 6;
 
@@ -103,6 +106,7 @@ public class YTViewBot implements Callable<Void> {
     private int proxyRefreshIntervalVariation = 10;
 
     public static final File TEMP_FOLDER = new File("/tmp");
+    private static final int TOR_START_PORT = 9051; // maybe make this pull from a list later
 
     private static PrintStream systemOut;
     private static OutputRedirect out;
@@ -176,7 +180,20 @@ public class YTViewBot implements Callable<Void> {
             log.info(String.format("Proxy list not specified. Generating and using %s tor proxies...", torProxies));
 
             List<ProxyHost> proxyHosts = new ArrayList<>();
-            // TODO spawn tor processes, port in proxy configs
+
+            int port = TOR_START_PORT;
+            for (int i = 0;i<torProxies;i++) {
+                TorProxyHost proxy = new TorProxyHost(port, torrc);
+                try {
+                    proxy.start();
+                    proxyHosts.add(proxy);
+                    log.info(String.format("Tor proxy start on port %s", port));
+                } catch (IOException e) {
+                    log.severe(String.format("Could not start tor proxy on port %s. Error: %s", port, e.getLocalizedMessage()));
+                    e.printStackTrace();
+                }
+                port++;
+            }
 
             proxyQueuer = new ProxyHostQueuer(proxyHosts);
         } else {
@@ -207,6 +224,12 @@ public class YTViewBot implements Callable<Void> {
         for (int i = 0;i<processes;i++) {
             viewBots[i] = new ViewBot(randy, urlQueuer, identityQueuer, proxyQueuer, TimeUnit.SECONDS.toMillis(watchTime), TimeUnit.SECONDS.toMillis(watchTimeVariation), viewsGenerated, proxyRefreshInterval, proxyRefreshIntervalVariation, extNoScript).start();
         }
+
+        // add shutdown hook to stop selenium instances which would persist otherwise
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            for (ViewBot bot : viewBots) bot.shutdown();
+        }));
+
         log.info("Running.");
 
         NonBlockingReader reader = terminal.reader();

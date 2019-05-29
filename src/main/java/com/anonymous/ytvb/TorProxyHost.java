@@ -18,31 +18,94 @@
 
 package com.anonymous.ytvb;
 
+import java.io.*;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TorProxyHost extends ProxyHost {
+
+    private static final long STARTED_POLLING_RATE = 250L;
+    private static final String DEFAULT_HOST = "127.0.0.1";
 
     // TODO add tor Process info here for starting/stopping
     protected final AtomicInteger viewsGenerated;
     protected final AtomicInteger refreshProxyAt;
 
-    // make constructor a config info
-    public TorProxyHost(String host, int port, boolean socks) {
-        super(host, port, socks);
+    private Process process;
+    private boolean starting;
+    private File config;
+
+    public TorProxyHost(int port, File config) {
+        super(DEFAULT_HOST, port, true);
+        this.config = config;
         this.viewsGenerated = new AtomicInteger();
         this.refreshProxyAt = new AtomicInteger();
     }
 
-    public void reset(int refreshPoint) {
+    public void reset(int refreshPoint) throws InterruptedException, IOException {
         this.viewsGenerated.set(0);
         this.refreshProxyAt.set(refreshPoint);
 
-        // TODO restart tor process
+        // restart tor process, gets a new public ip address
+        process.destroyForcibly();
+        process.waitFor();
+        start();
     }
 
-    public void waitIfResetting() {
+    public void waitIfResetting() throws InterruptedException {
+        while (starting) Thread.sleep(STARTED_POLLING_RATE);
+    }
 
+    public void start() throws IOException {
+        starting = true;
+        try {
+            // create config derived from given with modified port value
+
+            File torrcDerived = new File(YTViewBot.TEMP_FOLDER, "torrc-" + getPort());
+
+            // check if file exists first (tells us whether or not this is a reload)
+            if (!torrcDerived.exists()) {
+                InputStream cfin;
+                if (config != null && config.exists()) {
+                    cfin = new FileInputStream(config);
+                } else cfin = getClass().getResourceAsStream("assets/torrc");
+
+                // write derived file from source with mods
+                try (FileWriter fw = new FileWriter(torrcDerived)) {
+                    try (Scanner s = new Scanner(new InputStreamReader(cfin))) {
+                        while (s.hasNext()) fw.write(s.nextLine().replaceAll("%PORT%", Integer.toString(getPort())));
+                    }
+                    fw.flush();
+                }
+
+                // delete file on exit
+                torrcDerived.deleteOnExit();
+            }
+
+            // create process
+            process = new ProcessBuilder("tor", "-f", torrcDerived.getAbsolutePath()).start();
+
+            boolean success = false;
+            try (Scanner s = new Scanner(new InputStreamReader(process.getInputStream()))) {
+                while (s.hasNext()) {
+                    String line = s.nextLine().toLowerCase();
+                    if (line.contains("done")) {
+                        // tor process has been started successfully
+                        success = true;
+                        break;
+                    }
+                }
+            }
+
+            // failed to start tor process
+            if (!success) throw new IOException("Tor process failed to start. Is something already running in the port range?");
+
+            starting = false;
+        } catch (Exception e) {
+            starting = false;
+            throw e;
+        }
     }
 
     public static int calculateRefreshPoint(Random randy, int proxyRefreshInterval, int proxyRefreshIntervalVariation) {

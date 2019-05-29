@@ -24,6 +24,7 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Random;
@@ -43,7 +44,7 @@ public class ViewBot implements Runnable {
     private Queuer<Identity> identityQueuer; // every time
     private Queuer<ProxyHost> proxyQueuer;   // every torRefreshInterval +- torRefreshIntervalVariation
     private FirefoxDriver driver;
-    private ProxyHost currentProxy;
+    private ProxyHost currentProxy;          // maybe simplify this proxy switching system later
     private long watchTime;
     private long watchTimeVariation;
     private Random randy;
@@ -56,7 +57,7 @@ public class ViewBot implements Runnable {
     private int currentViewsGenerated;
     private File extNoScript;
 
-    public ViewBot(Random randy, Queuer<String> urlQueuer, Queuer<Identity> identityQueuer, Queuer<ProxyHost> proxyQueuer, long watchTime, long watchTimeVariation, AtomicLong viewsGenerated, int proxyRefreshInterval, int proxyRefreshIntervalVariation, File extNoScript) throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException {
+    public ViewBot(Random randy, Queuer<String> urlQueuer, Queuer<Identity> identityQueuer, Queuer<ProxyHost> proxyQueuer, long watchTime, long watchTimeVariation, AtomicLong viewsGenerated, int proxyRefreshInterval, int proxyRefreshIntervalVariation, File extNoScript) throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException, InterruptedException, IOException {
         this.urlQueuer = urlQueuer;
         this.identityQueuer = identityQueuer;
         this.proxyQueuer = proxyQueuer;
@@ -92,14 +93,14 @@ public class ViewBot implements Runnable {
         while (running) {
             try {
                 viewUrl();
-            } catch (InterruptedException | NoSuchFieldException | IllegalAccessException | ClassNotFoundException e) {
+            } catch (InterruptedException | NoSuchFieldException | IllegalAccessException | ClassNotFoundException | IOException e) {
                 YTViewBot.log.severe(String.format("An error occurred in %s", thread.getName()));
                 e.printStackTrace();
             }
         }
     }
 
-    private void viewUrl() throws InterruptedException, NoSuchFieldException, IllegalAccessException, ClassNotFoundException {
+    private void viewUrl() throws InterruptedException, NoSuchFieldException, IllegalAccessException, ClassNotFoundException, IOException {
         // enter config mode
         driver.get("about:config");
 
@@ -132,7 +133,7 @@ public class ViewBot implements Runnable {
         }
     }
 
-    private void refreshProxy(TorProxyHost torProxyHost) throws NoSuchFieldException, ClassNotFoundException, IllegalAccessException {
+    private void refreshProxy(TorProxyHost torProxyHost) throws NoSuchFieldException, ClassNotFoundException, IllegalAccessException, InterruptedException, IOException {
         if (torProxyHost == null) {
             currentProxy = proxyQueuer.getObject();
             refreshNormalProxyAt = TorProxyHost.calculateRefreshPoint(randy, proxyRefreshInterval, proxyRefreshIntervalVariation);
@@ -196,6 +197,7 @@ public class ViewBot implements Runnable {
 
     public void shutdown() {
         running = false;
+        driver.quit();
     }
 
     public enum PerfType {
