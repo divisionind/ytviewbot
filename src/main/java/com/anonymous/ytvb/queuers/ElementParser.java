@@ -29,6 +29,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * A useful class for parsing single line file elements of any format into a list.
+ */
 public abstract class ElementParser<T> {
 
     public abstract T processElement(String element) throws Exception;

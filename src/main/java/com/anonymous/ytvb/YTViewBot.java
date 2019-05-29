@@ -149,6 +149,11 @@ public class YTViewBot implements Callable<Void> {
         System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tT %3$s/%4$s] %5$s %n");
         log.info("Initializing...");
 
+        urlQueuer = new URLQueuer(urls);
+        viewBots = new ViewBot[processes];
+        randy = new Random();
+        viewsGenerated = new AtomicLong(0);
+
         if (proxies == null) {
             usingTor = true;
 
@@ -171,11 +176,6 @@ public class YTViewBot implements Callable<Void> {
             identityReader = new FileReader(identities);
         }
         identityQueuer = new IdentityQueuer(identityReader, randy);
-
-        urlQueuer = new URLQueuer(urls);
-        viewBots = new ViewBot[processes];
-        randy = new Random();
-        viewsGenerated = new AtomicLong(0);
 
         // TODO making config where users can specify browser link types, spawn one of these browsers for each process, (include custom one where tor proxy leads to driver of choice?), see if can set proxy while running chrome driver
 
