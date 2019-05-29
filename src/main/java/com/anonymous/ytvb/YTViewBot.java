@@ -183,7 +183,7 @@ public class YTViewBot implements Callable<Void> {
 
         // spawn processes
         for (int i = 0;i<processes;i++) {
-            viewBots[i] = new ViewBot(randy, urlQueuer, proxyQueuer, TimeUnit.SECONDS.toMillis(watchTime), TimeUnit.SECONDS.toMillis(watchTimeVariation), viewsGenerated).start();
+            viewBots[i] = new ViewBot(randy, urlQueuer, identityQueuer, proxyQueuer, TimeUnit.SECONDS.toMillis(watchTime), TimeUnit.SECONDS.toMillis(watchTimeVariation), viewsGenerated).start();
         }
         log.info("Running.");
 

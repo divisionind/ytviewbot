@@ -48,6 +48,7 @@ public class IdentityQueuer extends RandomQueuer<Identity> {
         if (parts.length != 2) throw new Exception();
         if (!parts[1].contains(SEPARATOR2)) throw new Exception();
         String[] dimensions = parts[1].split(SEPARATOR2);
+        // TODO return null here and manually add identity elements so that you can specify multiple resolutions per the same user agent (e.g. User-Agent|1280x720|1920x1080|2560x1440
 
         return new Identity(parts[0], new Dimension(Integer.parseInt(dimensions[0]), Integer.parseInt(dimensions[1])));
     }

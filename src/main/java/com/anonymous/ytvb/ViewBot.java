@@ -33,8 +33,9 @@ public class ViewBot implements Runnable {
         return viewBotFactory.newThread(bot);
     }
 
-    private Queuer<URL> urlQueuer;
-    private Queuer<ProxyHost> proxyQueuer;
+    private Queuer<URL> urlQueuer;           // every time
+    private Queuer<Identity> identityQueuer; // every time
+    private Queuer<ProxyHost> proxyQueuer;   // every torRefreshInterval +- torRefreshIntervalVariation
     private long watchTime;
     private long watchTimeVariation;
     private Random randy;
@@ -42,8 +43,9 @@ public class ViewBot implements Runnable {
     private Thread thread;
     private AtomicLong viewsGenerated;
 
-    public ViewBot(Random randy, Queuer<URL> urlQueuer, Queuer<ProxyHost> proxyQueuer, long watchTime, long watchTimeVariation, AtomicLong viewsGenerated) {
+    public ViewBot(Random randy, Queuer<URL> urlQueuer, Queuer<Identity> identityQueuer, Queuer<ProxyHost> proxyQueuer, long watchTime, long watchTimeVariation, AtomicLong viewsGenerated) {
         this.urlQueuer = urlQueuer;
+        this.identityQueuer = identityQueuer;
         this.proxyQueuer = proxyQueuer;
         this.watchTime = watchTime;
         this.watchTimeVariation = watchTimeVariation;
