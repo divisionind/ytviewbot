@@ -19,6 +19,8 @@
 package com.anonymous.ytvb;
 
 import com.anonymous.ytvb.queuers.Queuer;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
@@ -26,6 +28,7 @@ import org.openqa.selenium.firefox.FirefoxProfile;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
@@ -133,7 +136,7 @@ public class ViewBot implements Runnable {
         running = true;
         while (running) {
             try {
-                viewUrl();
+                viewUrl(); // TODO make this class BaseBot and make a ViewBot subclass - use this to make other bots to i.e. make accounts, view other website types, etc.
             } catch (InterruptedException | IOException e) {
                 YTViewBot.log.severe(String.format("An error occurred in %s", thread.getName()));
                 e.printStackTrace();
@@ -152,6 +155,17 @@ public class ViewBot implements Runnable {
 
         // loading page!
         driver.get(urlQueuer.getObject());
+
+        // yt doesnt autoplay videos to some visitors, if the video isn't playing, we need to find the play button and press it
+        // NOTE: I could just press k here, but I have to find whether or not the video is playing first anyway so this just seems easier to me.
+        List<WebElement> elements = driver.findElements(By.cssSelector("button, input[title='Play (k)']"));
+        for (WebElement ele : elements) {
+            // checks if has play button (meaning video is paused) and clicks it
+            if (ele.getAttribute("title").toLowerCase().contains("play")) {
+                ele.click();
+                break;
+            }
+        }
 
         Thread.sleep((watchTime + watchTimeVariation) - (long)randy.nextInt((int)(watchTimeVariation * 2L)));
         viewsGenerated.incrementAndGet();
