@@ -183,7 +183,7 @@ public class YTViewBot implements Callable<Void> {
 
             int port = TOR_START_PORT;
             for (int i = 0;i<torProxies;i++) {
-                TorProxyHost proxy = new TorProxyHost(port, torrc);
+                TorProxyHost proxy = new TorProxyHost(port, torrc, TorProxyHost.calculateRefreshPoint(randy, proxyRefreshInterval, proxyRefreshIntervalVariation));
                 try {
                     proxy.start();
                     proxyHosts.add(proxy);

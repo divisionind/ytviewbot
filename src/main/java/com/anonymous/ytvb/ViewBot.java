@@ -55,7 +55,6 @@ public class ViewBot implements Runnable {
     private int proxyRefreshIntervalVariation;
     private int refreshNormalProxyAt;
     private int currentViewsGenerated;
-    private File extNoScript;
 
     public ViewBot(Random randy, Queuer<String> urlQueuer, Queuer<Identity> identityQueuer, Queuer<ProxyHost> proxyQueuer, long watchTime, long watchTimeVariation, AtomicLong viewsGenerated, int proxyRefreshInterval, int proxyRefreshIntervalVariation, File extNoScript) throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException, InterruptedException, IOException {
         this.urlQueuer = urlQueuer;
@@ -67,9 +66,51 @@ public class ViewBot implements Runnable {
         this.viewsGenerated = viewsGenerated;
         this.proxyRefreshInterval = proxyRefreshInterval;
         this.proxyRefreshIntervalVariation = proxyRefreshIntervalVariation;
-        this.extNoScript = extNoScript;
 
-        refreshProxy(null);
+        currentProxy = proxyQueuer.getObject();
+
+        if (!(currentProxy instanceof TorProxyHost)) {
+            refreshNormalProxyAt = TorProxyHost.calculateRefreshPoint(randy, proxyRefreshInterval, proxyRefreshIntervalVariation);
+            currentViewsGenerated = 0;
+        }
+
+        FirefoxProfile profile = new FirefoxProfile();
+
+        // disables the "frozen" options so we can change anything we want
+        Field f = profile.getClass().getDeclaredField("additionalPrefs");
+        f.setAccessible(true);
+        Object perfs = f.get(profile);
+        Field f2 = Class.forName("org.openqa.selenium.firefox.Preferences").getDeclaredField("immutablePrefs");
+        f2.setAccessible(true);
+        Map<String, Object> immutablePrefs = (Map<String, Object>) f2.get(perfs);
+        immutablePrefs.clear();
+
+        // NoScript plugin to prevent WebRTC local ip collection (and other JS tracking)
+        profile.addExtension(extNoScript);
+
+        // prevents site tracking (prevents yt from seeing the same browser changing ips and viewing video over-and-over again)
+        profile.setPreference("browser.cache.disk.enable", false);
+        profile.setPreference("network.http.use-cache", false);
+        profile.setPreference("browser.cache.offline.enable", false);
+        profile.setPreference("browser.cache.memory.enable", false);
+        profile.setPreference("network.cookie.cookieBehavior", 2);
+
+        // so we dont have to push the button when changing values on the fly
+        profile.setPreference("general.warnOnAboutConfig", false);
+
+        //profile.setPreference("media.peerconnection.enabled", false); // how you disable WebRTC without extensions
+        //profile.setPreference("permissions.default.image", 2);        // stops the page from loading images (may decrease load time if not required)
+
+        // enable proxy
+        profile.setPreference("network.proxy.socks", currentProxy.getHost());
+        profile.setPreference("network.proxy.socks_port", currentProxy.getPort());
+        profile.setPreference("network.proxy.type", 1);
+
+        // start firefox headless
+        FirefoxOptions options = new FirefoxOptions();
+        options.setProfile(profile);
+        options.setHeadless(true);
+        driver = new FirefoxDriver(options);
     }
 
     public Thread getThread() {
@@ -93,14 +134,14 @@ public class ViewBot implements Runnable {
         while (running) {
             try {
                 viewUrl();
-            } catch (InterruptedException | NoSuchFieldException | IllegalAccessException | ClassNotFoundException | IOException e) {
+            } catch (InterruptedException | IOException e) {
                 YTViewBot.log.severe(String.format("An error occurred in %s", thread.getName()));
                 e.printStackTrace();
             }
         }
     }
 
-    private void viewUrl() throws InterruptedException, NoSuchFieldException, IllegalAccessException, ClassNotFoundException, IOException {
+    private void viewUrl() throws InterruptedException, IOException {
         // enter config mode
         driver.get("about:config");
 
@@ -133,61 +174,21 @@ public class ViewBot implements Runnable {
         }
     }
 
-    private void refreshProxy(TorProxyHost torProxyHost) throws NoSuchFieldException, ClassNotFoundException, IllegalAccessException, InterruptedException, IOException {
+    private void refreshProxy(TorProxyHost torProxyHost) throws InterruptedException, IOException {
         if (torProxyHost == null) {
             currentProxy = proxyQueuer.getObject();
             refreshNormalProxyAt = TorProxyHost.calculateRefreshPoint(randy, proxyRefreshInterval, proxyRefreshIntervalVariation);
             currentViewsGenerated = 0;
-        } else {
-            torProxyHost.reset(TorProxyHost.calculateRefreshPoint(randy, proxyRefreshInterval, proxyRefreshIntervalVariation));
-        }
 
-        if (driver == null) {
-            FirefoxProfile profile = new FirefoxProfile();
-
-            // disables the "frozen" options so we can change anything we want
-            Field f = profile.getClass().getDeclaredField("additionalPrefs");
-            f.setAccessible(true);
-            Object perfs = f.get(profile);
-            Field f2 = Class.forName("org.openqa.selenium.firefox.Preferences").getDeclaredField("immutablePrefs");
-            f2.setAccessible(true);
-            Map<String, Object> immutablePrefs = (Map<String, Object>) f2.get(perfs);
-            immutablePrefs.clear();
-
-            // NoScript plugin to prevent WebRTC local ip collection (and other JS tracking)
-            profile.addExtension(extNoScript);
-
-            // prevents site tracking (prevents yt from seeing the same browser changing ips and viewing video over-and-over again)
-            profile.setPreference("browser.cache.disk.enable", false);
-            profile.setPreference("network.http.use-cache", false);
-            profile.setPreference("browser.cache.offline.enable", false);
-            profile.setPreference("browser.cache.memory.enable", false);
-            profile.setPreference("network.cookie.cookieBehavior", 2);
-
-            // so we dont have to push the button when changing values on the fly
-            profile.setPreference("general.warnOnAboutConfig", false);
-
-            //profile.setPreference("media.peerconnection.enabled", false); // how you disable WebRTC without extensions
-            //profile.setPreference("permissions.default.image", 2);        // stops the page from loading images (may decrease load time if not required)
-
-            // enable proxy
-            profile.setPreference("network.proxy.socks", currentProxy.getHost());
-            profile.setPreference("network.proxy.socks_port", currentProxy.getPort());
-            profile.setPreference("network.proxy.type", 1);
-
-            // start firefox headless
-            FirefoxOptions options = new FirefoxOptions();
-            options.setProfile(profile);
-            options.setHeadless(true);
-            driver = new FirefoxDriver(options);
-        } else
-        if (torProxyHost == null) {
             // enter config mode
             driver.get("about:config");
 
             // change proxy
             setPerf(PerfType.String, "network.proxy.socks", currentProxy.getHost());
             setPerf(PerfType.Int, "network.proxy.socks_port", currentProxy.getPort());
+        } else {
+            // dont have to change proxy address in browser here because that remains the same, tor is simply restarted to yield a new ip
+            torProxyHost.reset(TorProxyHost.calculateRefreshPoint(randy, proxyRefreshInterval, proxyRefreshIntervalVariation));
         }
     }
 

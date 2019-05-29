@@ -36,11 +36,11 @@ public class TorProxyHost extends ProxyHost {
     private boolean starting;
     private File config;
 
-    public TorProxyHost(int port, File config) {
+    public TorProxyHost(int port, File config, int refreshPoint) {
         super(DEFAULT_HOST, port, true);
         this.config = config;
-        this.viewsGenerated = new AtomicInteger();
-        this.refreshProxyAt = new AtomicInteger();
+        this.viewsGenerated = new AtomicInteger(0);
+        this.refreshProxyAt = new AtomicInteger(refreshPoint);
     }
 
     public void reset(int refreshPoint) throws InterruptedException, IOException {
