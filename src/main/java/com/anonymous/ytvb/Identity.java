@@ -18,7 +18,7 @@
 
 package com.anonymous.ytvb;
 
-import java.awt.*;
+import org.openqa.selenium.Dimension;
 
 public class Identity {
 

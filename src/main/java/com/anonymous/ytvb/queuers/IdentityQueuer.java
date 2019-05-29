@@ -19,8 +19,8 @@
 package com.anonymous.ytvb.queuers;
 
 import com.anonymous.ytvb.Identity;
+import org.openqa.selenium.Dimension;
 
-import java.awt.*;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.List;

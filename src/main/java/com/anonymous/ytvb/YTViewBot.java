@@ -27,10 +27,12 @@ import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.jline.utils.NonBlockingReader;
+import org.openqa.selenium.firefox.FirefoxDriver;
 import picocli.CommandLine;
 
 import java.io.*;
-import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -94,11 +96,13 @@ public class YTViewBot implements Callable<Void> {
     @CommandLine.Option(names = {"-t", "--tor-proxies"}, description = "number of tor proxies to spawn, warning: increasing this will decrease anonymity") // Increasing this will decrease anonymity while allow you to raise the refresh interval.
     private int torProxies = 1;
 
-    @CommandLine.Option(names = {"-r", "--refresh-int"}, description = "number of views to generate every tor refresh")
-    private int torRefreshInterval = 50;
+    @CommandLine.Option(names = {"-r", "--refresh-int"}, description = "number of views to generate before switching proxies")
+    private int proxyRefreshInterval = 50;
 
     @CommandLine.Option(names = {"-R", "--refresh-variation"}, description = "how much to vary the refresh interval by + or - in number of views")
-    private int torRefreshIntervalVariation = 10;
+    private int proxyRefreshIntervalVariation = 10;
+
+    public static final File TEMP_FOLDER = new File("/tmp");
 
     private static PrintStream systemOut;
     private static OutputRedirect out;
@@ -113,6 +117,12 @@ public class YTViewBot implements Callable<Void> {
     public static Logger log = Logger.getLogger("YTViewBot");
 
     public static void main(String[] args) {
+
+        if (!System.getProperty("os.name").toLowerCase().contains("linux")) {
+            log.severe("OS not supported! You must be running Linux.");
+            return;
+        }
+
         try {
             CommandLine.call(new YTViewBot(), args);
         } catch (Exception e) {
@@ -125,7 +135,7 @@ public class YTViewBot implements Callable<Void> {
         ex.printStackTrace();
     }
 
-    private Queuer<URL> urlQueuer;
+    private Queuer<String> urlQueuer;
     private Queuer<ProxyHost> proxyQueuer;
     private Queuer<Identity> identityQueuer;
     private ViewBot[] viewBots;
@@ -157,12 +167,18 @@ public class YTViewBot implements Callable<Void> {
         if (proxies == null) {
             usingTor = true;
 
+            // prevents tor proxies from being created and never used
+            if (torProxies > processes) {
+                log.severe("Can not use more tor proxies than processes!");
+                return null;
+            }
+
             log.info(String.format("Proxy list not specified. Generating and using %s tor proxies...", torProxies));
 
             List<ProxyHost> proxyHosts = new ArrayList<>();
             // TODO spawn tor processes, port in proxy configs
 
-            proxyQueuer = new ProxyHostQueuer(proxyHosts); // maybe use random queuer here?
+            proxyQueuer = new ProxyHostQueuer(proxyHosts);
         } else {
             usingTor = false;
             proxyQueuer = new ProxyHostQueuer(proxies);
@@ -177,13 +193,19 @@ public class YTViewBot implements Callable<Void> {
         }
         identityQueuer = new IdentityQueuer(identityReader, randy);
 
-        // TODO making config where users can specify browser link types, spawn one of these browsers for each process, (include custom one where tor proxy leads to driver of choice?), see if can set proxy while running chrome driver
-
         log.info("Spawning processes...");
+
+        // extract extensions
+        File extNoScript = new File(TEMP_FOLDER, "NoScript.xpi");
+        Files.copy(getClass().getResourceAsStream("assets/NoScript.xpi"), extNoScript.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        extNoScript.deleteOnExit();
+
+        // stops awful log spam by selenium
+        System.setProperty(FirefoxDriver.SystemProperty.BROWSER_LOGFILE, "/dev/null"); // NUL - Windows | /dev/null - Linux
 
         // spawn processes
         for (int i = 0;i<processes;i++) {
-            viewBots[i] = new ViewBot(randy, urlQueuer, identityQueuer, proxyQueuer, TimeUnit.SECONDS.toMillis(watchTime), TimeUnit.SECONDS.toMillis(watchTimeVariation), viewsGenerated).start();
+            viewBots[i] = new ViewBot(randy, urlQueuer, identityQueuer, proxyQueuer, TimeUnit.SECONDS.toMillis(watchTime), TimeUnit.SECONDS.toMillis(watchTimeVariation), viewsGenerated, proxyRefreshInterval, proxyRefreshIntervalVariation, extNoScript).start();
         }
         log.info("Running.");
 

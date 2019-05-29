@@ -19,13 +19,19 @@
 package com.anonymous.ytvb;
 
 import com.anonymous.ytvb.queuers.Queuer;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.firefox.FirefoxProfile;
 
-import java.io.IOException;
-import java.net.URL;
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ViewBot implements Runnable {
+
+    private static final String BASE_CONFIG_UPDATE_STRING = "Components.classes[\"@mozilla.org/preferences-service;1\"].getService(Components.interfaces.nsIPrefBranch).set%sPref(\"%s\", \"%s\");";
 
     private static ViewBotFactory viewBotFactory = new ViewBotFactory();
 
@@ -33,25 +39,36 @@ public class ViewBot implements Runnable {
         return viewBotFactory.newThread(bot);
     }
 
-    private Queuer<URL> urlQueuer;           // every time
+    private Queuer<String> urlQueuer;        // every time
     private Queuer<Identity> identityQueuer; // every time
     private Queuer<ProxyHost> proxyQueuer;   // every torRefreshInterval +- torRefreshIntervalVariation
+    private FirefoxDriver driver;
+    private ProxyHost currentProxy;
     private long watchTime;
     private long watchTimeVariation;
     private Random randy;
     private boolean running;
     private Thread thread;
     private AtomicLong viewsGenerated;
+    private int proxyRefreshInterval;
+    private int proxyRefreshIntervalVariation;
+    private int refreshNormalProxyAt;
+    private int currentViewsGenerated;
+    private File extNoScript;
 
-    public ViewBot(Random randy, Queuer<URL> urlQueuer, Queuer<Identity> identityQueuer, Queuer<ProxyHost> proxyQueuer, long watchTime, long watchTimeVariation, AtomicLong viewsGenerated) {
+    public ViewBot(Random randy, Queuer<String> urlQueuer, Queuer<Identity> identityQueuer, Queuer<ProxyHost> proxyQueuer, long watchTime, long watchTimeVariation, AtomicLong viewsGenerated, int proxyRefreshInterval, int proxyRefreshIntervalVariation, File extNoScript) throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException {
         this.urlQueuer = urlQueuer;
         this.identityQueuer = identityQueuer;
         this.proxyQueuer = proxyQueuer;
         this.watchTime = watchTime;
         this.watchTimeVariation = watchTimeVariation;
         this.randy = randy;
-        this.running = false;
         this.viewsGenerated = viewsGenerated;
+        this.proxyRefreshInterval = proxyRefreshInterval;
+        this.proxyRefreshIntervalVariation = proxyRefreshIntervalVariation;
+        this.extNoScript = extNoScript;
+
+        refreshProxy(null);
     }
 
     public Thread getThread() {
@@ -75,20 +92,113 @@ public class ViewBot implements Runnable {
         while (running) {
             try {
                 viewUrl();
-            } catch (IOException | InterruptedException e) {
+            } catch (InterruptedException | NoSuchFieldException | IllegalAccessException | ClassNotFoundException e) {
                 YTViewBot.log.severe(String.format("An error occurred in %s", thread.getName()));
                 e.printStackTrace();
             }
         }
     }
 
-    private void viewUrl() throws IOException, InterruptedException {
+    private void viewUrl() throws InterruptedException, NoSuchFieldException, IllegalAccessException, ClassNotFoundException {
+        // enter config mode
+        driver.get("about:config");
 
-        Thread.sleep((watchTime + watchTimeVariation) - (long)randy.nextInt((int)(watchTimeVariation * 2L) + 1));
+        // essentially change what device yt thinks we are using
+        Identity identity = identityQueuer.getObject();
+        setPerf(PerfType.String, "general.useragent.override", identity.getUserAgent());
+        driver.manage().window().setSize(identity.getScreenSize());
+
+        // loading page!
+        driver.get(urlQueuer.getObject());
+
+        Thread.sleep((watchTime + watchTimeVariation) - (long)randy.nextInt((int)(watchTimeVariation * 2L)));
         viewsGenerated.incrementAndGet();
+
+        // check and refresh proxy if time
+        if (currentProxy instanceof TorProxyHost) {
+            TorProxyHost torProxyHost = (TorProxyHost)currentProxy;
+
+            // holds this process if tor is resetting to get new ip
+            torProxyHost.waitIfResetting();
+
+            if (torProxyHost.viewsGenerated.incrementAndGet() >= torProxyHost.refreshProxyAt.get()) {
+                refreshProxy(torProxyHost);
+            }
+        } else {
+            currentViewsGenerated++;
+            if (currentViewsGenerated >= refreshNormalProxyAt) { // I would like to do this inline but it would differ in function from the above statement so thats why I didnt
+                refreshProxy(null);
+            }
+        }
+    }
+
+    private void refreshProxy(TorProxyHost torProxyHost) throws NoSuchFieldException, ClassNotFoundException, IllegalAccessException {
+        if (torProxyHost == null) {
+            currentProxy = proxyQueuer.getObject();
+            refreshNormalProxyAt = TorProxyHost.calculateRefreshPoint(randy, proxyRefreshInterval, proxyRefreshIntervalVariation);
+            currentViewsGenerated = 0;
+        } else {
+            torProxyHost.reset(TorProxyHost.calculateRefreshPoint(randy, proxyRefreshInterval, proxyRefreshIntervalVariation));
+        }
+
+        if (driver == null) {
+            FirefoxProfile profile = new FirefoxProfile();
+
+            // disables the "frozen" options so we can change anything we want
+            Field f = profile.getClass().getDeclaredField("additionalPrefs");
+            f.setAccessible(true);
+            Object perfs = f.get(profile);
+            Field f2 = Class.forName("org.openqa.selenium.firefox.Preferences").getDeclaredField("immutablePrefs");
+            f2.setAccessible(true);
+            Map<String, Object> immutablePrefs = (Map<String, Object>) f2.get(perfs);
+            immutablePrefs.clear();
+
+            // NoScript plugin to prevent WebRTC local ip collection (and other JS tracking)
+            profile.addExtension(extNoScript);
+
+            // prevents site tracking (prevents yt from seeing the same browser changing ips and viewing video over-and-over again)
+            profile.setPreference("browser.cache.disk.enable", false);
+            profile.setPreference("network.http.use-cache", false);
+            profile.setPreference("browser.cache.offline.enable", false);
+            profile.setPreference("browser.cache.memory.enable", false);
+            profile.setPreference("network.cookie.cookieBehavior", 2);
+
+            // so we dont have to push the button when changing values on the fly
+            profile.setPreference("general.warnOnAboutConfig", false);
+
+            //profile.setPreference("media.peerconnection.enabled", false); // how you disable WebRTC without extensions
+            //profile.setPreference("permissions.default.image", 2);        // stops the page from loading images (may decrease load time if not required)
+
+            // enable proxy
+            profile.setPreference("network.proxy.socks", currentProxy.getHost());
+            profile.setPreference("network.proxy.socks_port", currentProxy.getPort());
+            profile.setPreference("network.proxy.type", 1);
+
+            // start firefox headless
+            FirefoxOptions options = new FirefoxOptions();
+            options.setProfile(profile);
+            options.setHeadless(true);
+            driver = new FirefoxDriver(options);
+        } else
+        if (torProxyHost == null) {
+            // enter config mode
+            driver.get("about:config");
+
+            // change proxy
+            setPerf(PerfType.String, "network.proxy.socks", currentProxy.getHost());
+            setPerf(PerfType.Int, "network.proxy.socks_port", currentProxy.getPort());
+        }
+    }
+
+    private void setPerf(PerfType type, String perf, Object value) {
+        driver.executeScript(String.format(BASE_CONFIG_UPDATE_STRING, type.name(), perf, value));
     }
 
     public void shutdown() {
         running = false;
+    }
+
+    public enum PerfType {
+        String, Bool, Int
     }
 }

@@ -21,17 +21,16 @@ package com.anonymous.ytvb.queuers;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 
-public class URLQueuer extends SequentialQueuer<URL> {
+public class URLQueuer extends SequentialQueuer<String> {
 
     public URLQueuer(File stringFile) throws IOException {
         super(stringFile);
     }
 
     @Override
-    public URL processElement(String element) throws MalformedURLException {
-        return new URL(element);
+    public String processElement(String element) throws MalformedURLException {
+        return element;
     }
 
     @Override
