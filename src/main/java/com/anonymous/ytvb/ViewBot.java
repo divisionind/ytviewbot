@@ -214,6 +214,7 @@ public class ViewBot implements Runnable {
 
     public void shutdown() {
         running = false;
+        thread.interrupt();
         driver.quit();
     }
 
