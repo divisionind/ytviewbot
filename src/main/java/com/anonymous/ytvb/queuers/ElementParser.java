@@ -58,7 +58,7 @@ public abstract class ElementParser<T> {
                 i++;
                 try {
                     String line = s.nextLine();
-                    if (line.equals("")) continue; // skip blank lines
+                    if (line.equals("") || line.startsWith("#")) continue; // skip blank lines and comments
 
                     T element = processElement(line);
                     if (element != null) objects.add(element);

@@ -40,9 +40,9 @@ public class ProxyHostQueuer extends SequentialQueuer<ProxyHost> {
     public ProxyHost processElement(String element) throws Exception {
         if (!element.contains(SEPARATOR)) throw new Exception();
         String[] parts = element.split(SEPARATOR);
-        if (parts.length != 3) throw new Exception();
+        if (parts.length != 4) throw new Exception();
 
-        return new ProxyHost(parts[0], Integer.parseInt(parts[1]), parts[2].equalsIgnoreCase("y"));
+        return new ProxyHost(parts[0], Integer.parseInt(parts[1]), parts[2].equalsIgnoreCase("y"), Integer.parseInt(parts[3]));
     }
 
     @Override

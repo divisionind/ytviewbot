@@ -107,6 +107,7 @@ public class ViewBot implements Runnable {
         // enable proxy
         profile.setPreference("network.proxy.socks", currentProxy.getHost());
         profile.setPreference("network.proxy.socks_port", currentProxy.getPort());
+        profile.setPreference("network.proxy.socks_version", currentProxy.getVersion());
         profile.setPreference("network.proxy.type", 1);
 
         // start firefox headless
@@ -200,6 +201,7 @@ public class ViewBot implements Runnable {
             // change proxy
             setPerf(PerfType.String, "network.proxy.socks", currentProxy.getHost());
             setPerf(PerfType.Int, "network.proxy.socks_port", currentProxy.getPort());
+            setPerf(PerfType.Int, "network.proxy.socks_version", currentProxy.getVersion());
         } else {
             // dont have to change proxy address in browser here because that remains the same, tor is simply restarted to yield a new ip
             torProxyHost.reset(TorProxyHost.calculateRefreshPoint(randy, proxyRefreshInterval, proxyRefreshIntervalVariation));

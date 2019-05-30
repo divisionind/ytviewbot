@@ -41,7 +41,6 @@ public class IdentityQueuer extends RandomQueuer<Identity> {
 
     @Override
     public Identity processElement(String element) throws Exception {
-        if (element.startsWith("#")) return null;
         if (!element.contains(SEPARATOR1)) throw new Exception();
         String[] parts = element.split(SEPARATOR1);
 

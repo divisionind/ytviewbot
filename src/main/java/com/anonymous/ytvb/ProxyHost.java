@@ -23,11 +23,13 @@ public class ProxyHost {
     private String host;
     private int port;
     private boolean socks;
+    private int version;
 
-    public ProxyHost(String host, int port, boolean socks) {
+    public ProxyHost(String host, int port, boolean socks, int version) {
         this.host = host;
         this.port = port;
         this.socks = socks;
+        this.version = version;
     }
 
     public String getHost() {
@@ -40,5 +42,9 @@ public class ProxyHost {
 
     public boolean isSocks() {
         return socks;
+    }
+
+    public int getVersion() {
+        return version;
     }
 }

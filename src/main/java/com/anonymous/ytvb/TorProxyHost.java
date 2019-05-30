@@ -37,7 +37,7 @@ public class TorProxyHost extends ProxyHost {
     private File config;
 
     public TorProxyHost(int port, File config, int refreshPoint) {
-        super(DEFAULT_HOST, port, true);
+        super(DEFAULT_HOST, port, true, 5);
         this.config = config;
         this.viewsGenerated = new AtomicInteger(0);
         this.refreshProxyAt = new AtomicInteger(refreshPoint);
