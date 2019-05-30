@@ -27,6 +27,7 @@ import java.util.List;
 public class ProxyHostQueuer extends SequentialQueuer<ProxyHost> {
 
     private static final String SEPARATOR = " ";
+    private static final String TABLE_CHAR = "\t";
 
     public ProxyHostQueuer(List<ProxyHost> objects) {
         super(objects);
@@ -38,6 +39,8 @@ public class ProxyHostQueuer extends SequentialQueuer<ProxyHost> {
 
     @Override
     public ProxyHost processElement(String element) throws Exception {
+        element = element.trim().replaceAll(" +", " ");
+        if (element.contains(TABLE_CHAR)) element = element.replaceAll(TABLE_CHAR, SEPARATOR); // this is present when pasting from excel
         if (!element.contains(SEPARATOR)) throw new Exception();
         String[] parts = element.split(SEPARATOR);
         if (parts.length != 4) throw new Exception();
