@@ -138,7 +138,7 @@ public class ViewBot implements Runnable {
         while (running) {
             try {
                 viewUrl(); // TODO make this class BaseBot and make a ViewBot subclass - use this to make other bots to i.e. make accounts, view other website types, etc.
-            } catch (InterruptedException | IOException e) {
+            } catch (Exception e) {
                 YTViewBot.log.severe(String.format("An error occurred in %s", thread.getName()));
                 e.printStackTrace();
             }
