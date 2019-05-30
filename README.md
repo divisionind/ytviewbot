@@ -3,15 +3,22 @@
 ## Installation
 _Note: This project only supports Linux and is completely headless._
 
-1. Install prerequisites `sudo apt install tor openjdk-8-jre`
+#### For dummies - installing for use from CLI
+1. Clone repo and enter it `git clone http://192.168.0.2:3000/ahoward/ytviewbot.git && cd ytviewbot`
+1. Run `sudo ./install`. If you get an error, try running `sudo chmod +x install`
+2. Enjoy! The command is `ytviewbot`
+
+#### Advanced - portable use
+1. Install prerequisites `sudo apt update && sudo apt install tor openjdk-8-jre firefox-esr`
 2. Clone repo and enter it `git clone http://192.168.0.2:3000/ahoward/ytviewbot.git && cd ytviewbot`
-3. Build the project `./gradlew linux` if you get an error, change the permissions with `chmod +x gradlew` and try again.
-4. Now run `./build/libs/ytviewbot` for further help.
+3. Build the project `./gradlew linux` if you get an error, change the permissions with `sudo chmod +x gradlew` and try again.
+4. Download the gecko driver `wget https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-linux64.tar.gz`
+5. Extract the tarball `sudo tar -x geckodriver -zf geckodriver-v0.24.0-linux64.tar.gz -O > /usr/bin/geckodriver`
+6. Give execute permission `sudo chmod +x /usr/bin/geckodriver`
+7. Remove tarball `rm geckodriver-v0.24.0-linux64.tar.gz`
+8. Now run `./build/libs/ytviewbot` for further help.
 
-You can also choose to install the project to more easily use it from the command line.
-
-5. To install, complete steps 1 & 2 and run `sudo ./install`
-6. You may now use the command `ytviewbot` anywhere.
+You may skip steps 1 and 4-7 by running `sudo ./installDepends`
 
 ### Using Windows?
 No sweat. You can run Linux on Windows. Just look up how to install the Windows Subsystem for Linux (WSL).

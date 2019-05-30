@@ -1,4 +1,5 @@
 #!/bin/sh
-# TODO install other dependencies
+./installDepends
 ./gradlew linux
 cp build/libs/ytviewbot /bin/ytviewbot
+echo 'YTViewBot was successfully installed!'

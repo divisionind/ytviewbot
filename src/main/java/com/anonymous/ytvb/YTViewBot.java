@@ -94,7 +94,7 @@ public class YTViewBot implements Callable<Void> {
     private int watchTimeVariation = 2;
 
     @CommandLine.Option(names = {"-p", "--processes"}, description = "number of process to view at the same time")
-    private int processes = 4;
+    private int processes = 2;
 
     @CommandLine.Option(names = {"-t", "--tor-proxies"}, description = "number of tor proxies to spawn, warning: increasing this will decrease anonymity") // Increasing this will decrease anonymity while allow you to raise the refresh interval.
     private int torProxies = 1;
@@ -187,7 +187,7 @@ public class YTViewBot implements Callable<Void> {
                 try {
                     proxy.start();
                     proxyHosts.add(proxy);
-                    log.info(String.format("Tor proxy start on port %s", port));
+                    log.info(String.format("Tor proxy started on port %s", port));
                 } catch (IOException e) {
                     log.severe(String.format("Could not start tor proxy on port %s. Error: %s", port, e.getLocalizedMessage()));
                     e.printStackTrace();

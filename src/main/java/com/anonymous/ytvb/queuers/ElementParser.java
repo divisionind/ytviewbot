@@ -57,7 +57,10 @@ public abstract class ElementParser<T> {
             while (s.hasNext()) {
                 i++;
                 try {
-                    T element = processElement(s.nextLine());
+                    String line = s.nextLine();
+                    if (line.equals("")) continue; // skip blank lines
+
+                    T element = processElement(line);
                     if (element != null) objects.add(element);
                 } catch (Exception e) {
                     YTViewBot.log.severe(String.format(parseErrorMessage(), numberFormatter.format(i)));

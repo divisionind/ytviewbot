@@ -20,7 +20,6 @@ package com.anonymous.ytvb.queuers;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 
 public class URLQueuer extends SequentialQueuer<String> {
 
@@ -29,7 +28,7 @@ public class URLQueuer extends SequentialQueuer<String> {
     }
 
     @Override
-    public String processElement(String element) throws MalformedURLException {
+    public String processElement(String element) {
         return element;
     }
 
