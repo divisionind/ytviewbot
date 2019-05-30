@@ -5,7 +5,7 @@ _Note: This project only supports Linux and is completely headless._
 
 #### For dummies - installing for use from CLI
 1. Clone repo and enter it `git clone http://192.168.0.2:3000/ahoward/ytviewbot.git && cd ytviewbot`
-1. Run `sudo ./install`. If you get an error, try running `sudo chmod +x install`
+1. Run `sudo ./install`. If you get an error, change the permissions with `sudo chmod +x install`
 2. Enjoy! The command is `ytviewbot`
 
 #### Advanced - portable use

@@ -1,5 +1,7 @@
 #!/bin/sh
+chmod +x installDepends
 ./installDepends
+chmod +x gradlew
 ./gradlew linux
 cp build/libs/ytviewbot /bin/ytviewbot
 echo 'YTViewBot was successfully installed!'
