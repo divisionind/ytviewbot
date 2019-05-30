@@ -156,7 +156,7 @@ public class YTViewBot implements Callable<Void> {
                 .build();
         terminal.enterRawMode();
 
-        StaticLine staticLine = new StaticLine(systemOut, "[s]tatus [d]onate [c]lose");
+        StaticLine staticLine = new StaticLine(systemOut, "Loading...");
         out.setStaticLine(staticLine);
         err.setStaticLine(staticLine);
 
@@ -222,6 +222,7 @@ public class YTViewBot implements Callable<Void> {
 
         // spawn processes
         for (int i = 0;i<processes;i++) {
+            staticLine.setLine("Starting ViewBot-" + i);
             viewBots[i] = new ViewBot(randy, urlQueuer, identityQueuer, proxyQueuer, TimeUnit.SECONDS.toMillis(watchTime), TimeUnit.SECONDS.toMillis(watchTimeVariation), viewsGenerated, proxyRefreshInterval, proxyRefreshIntervalVariation, extNoScript).start();
         }
 
@@ -240,6 +241,8 @@ public class YTViewBot implements Callable<Void> {
         }));
 
         log.info("Running.");
+
+        staticLine.setLine("[s]tatus [d]onate [c]lose");
 
         NonBlockingReader reader = terminal.reader();
 
