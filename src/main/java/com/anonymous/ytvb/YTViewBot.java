@@ -222,7 +222,7 @@ public class YTViewBot implements Callable<Void> {
 
         // spawn processes
         for (int i = 0;i<processes;i++) {
-            staticLine.setLine("Starting ViewBot-" + i);
+            staticLine.setLine(String.format("Starting ViewBot-%s...", i));
             viewBots[i] = new ViewBot(randy, urlQueuer, identityQueuer, proxyQueuer, TimeUnit.SECONDS.toMillis(watchTime), TimeUnit.SECONDS.toMillis(watchTimeVariation), viewsGenerated, proxyRefreshInterval, proxyRefreshIntervalVariation, extNoScript).start();
         }
 
