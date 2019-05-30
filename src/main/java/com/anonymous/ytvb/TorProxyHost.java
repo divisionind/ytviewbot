@@ -76,11 +76,11 @@ public class TorProxyHost extends ProxyHost {
                 } else cfin = getClass().getResourceAsStream("/assets/torrc");
 
                 // write derived file from source with mods
-                try (FileWriter fw = new FileWriter(torrcDerived)) {
+                try (PrintWriter pw = new PrintWriter(torrcDerived)) {
                     try (Scanner s = new Scanner(new InputStreamReader(cfin))) {
-                        while (s.hasNext()) fw.write(s.nextLine().replaceAll("%PORT%", Integer.toString(getPort())));
+                        while (s.hasNext()) pw.println(s.nextLine().replaceAll("%PORT%", Integer.toString(getPort())));
                     }
-                    fw.flush();
+                    pw.flush();
                 }
 
                 // delete file on exit
