@@ -145,7 +145,6 @@ public class YTViewBot implements Callable<Void> {
     private ViewBot[] viewBots;
     private Random randy;
     private AtomicLong viewsGenerated;
-    private boolean usingTor;
 
     @Override
     public Void call() throws Exception {
@@ -169,8 +168,6 @@ public class YTViewBot implements Callable<Void> {
         viewsGenerated = new AtomicLong(0);
 
         if (proxies == null) {
-            usingTor = true;
-
             // prevents tor proxies from being created and never used
             if (torProxies > processes) {
                 log.severe("Can not use more tor proxies than processes!");
@@ -197,7 +194,6 @@ public class YTViewBot implements Callable<Void> {
 
             proxyQueuer = new ProxyHostQueuer(proxyHosts);
         } else {
-            usingTor = false;
             proxyQueuer = new ProxyHostQueuer(proxies);
         }
 
@@ -222,8 +218,9 @@ public class YTViewBot implements Callable<Void> {
 
         // spawn processes
         for (int i = 0;i<processes;i++) {
-            staticLine.setLine(String.format("Starting ViewBot-%s...", i));
-            viewBots[i] = new ViewBot(randy, urlQueuer, identityQueuer, proxyQueuer, TimeUnit.SECONDS.toMillis(watchTime), TimeUnit.SECONDS.toMillis(watchTimeVariation), viewsGenerated, proxyRefreshInterval, proxyRefreshIntervalVariation, extNoScript).start();
+            String name = String.format("ViewBot-%s", i);
+            staticLine.setLine(String.format("Starting %s...", name));
+            viewBots[i] = new ViewBot(name, randy, urlQueuer, identityQueuer, proxyQueuer, TimeUnit.SECONDS.toMillis(watchTime), TimeUnit.SECONDS.toMillis(watchTimeVariation), viewsGenerated, proxyRefreshInterval, proxyRefreshIntervalVariation, extNoScript).start();
         }
 
         // add shutdown hook to stop selenium instances which would persist otherwise
@@ -253,7 +250,7 @@ public class YTViewBot implements Callable<Void> {
                             .style(AttributedStyle.INVERSE)
                             .append("Status").toAnsi());
                     for (ViewBot bot : viewBots) {
-                        log.info(String.format("%s - %s", bot.getThread().getName(), bot.isRunning() ? "RUNNING" : "STOPPED"));
+                        log.info(String.format("%s - %s - %s", bot.getName(), bot.isRunning() ? "RUNNING" : "STOPPED", bot.getDriver().getTitle()));
                     }
                     log.info(String.format("Views Generated: %s", NumberFormat.getNumberInstance().format(viewsGenerated.get())));
                     log.info("-----------------------------------------------------------");

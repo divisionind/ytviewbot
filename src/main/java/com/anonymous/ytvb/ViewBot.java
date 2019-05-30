@@ -20,6 +20,7 @@ package com.anonymous.ytvb;
 
 import com.anonymous.ytvb.queuers.Queuer;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
@@ -28,6 +29,7 @@ import org.openqa.selenium.firefox.FirefoxProfile;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -43,6 +45,7 @@ public class ViewBot implements Runnable {
         return viewBotFactory.newThread(bot);
     }
 
+    private String name;
     private Queuer<String> urlQueuer;        // every time
     private Queuer<Identity> identityQueuer; // every time
     private Queuer<ProxyHost> proxyQueuer;   // every torRefreshInterval +- torRefreshIntervalVariation
@@ -59,7 +62,8 @@ public class ViewBot implements Runnable {
     private int refreshNormalProxyAt;
     private int currentViewsGenerated;
 
-    public ViewBot(Random randy, Queuer<String> urlQueuer, Queuer<Identity> identityQueuer, Queuer<ProxyHost> proxyQueuer, long watchTime, long watchTimeVariation, AtomicLong viewsGenerated, int proxyRefreshInterval, int proxyRefreshIntervalVariation, File extNoScript) throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException, InterruptedException, IOException {
+    public ViewBot(String name, Random randy, Queuer<String> urlQueuer, Queuer<Identity> identityQueuer, Queuer<ProxyHost> proxyQueuer, long watchTime, long watchTimeVariation, AtomicLong viewsGenerated, int proxyRefreshInterval, int proxyRefreshIntervalVariation, File extNoScript) throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException, InterruptedException, IOException {
+        this.name = name;
         this.urlQueuer = urlQueuer;
         this.identityQueuer = identityQueuer;
         this.proxyQueuer = proxyQueuer;
@@ -117,12 +121,16 @@ public class ViewBot implements Runnable {
         driver = new FirefoxDriver(options);
     }
 
-    public Thread getThread() {
-        return thread;
+    public String getName() {
+        return name;
     }
 
     public boolean isRunning() {
         return running;
+    }
+
+    public FirefoxDriver getDriver() {
+        return driver;
     }
 
     public ViewBot start() {
@@ -139,6 +147,7 @@ public class ViewBot implements Runnable {
             try {
                 viewUrl(); // TODO make this class BaseBot and make a ViewBot subclass - use this to make other bots to i.e. make accounts, view other website types, etc.
             } catch (Exception e) {
+                if (e instanceof InterruptedException) continue;
                 YTViewBot.log.severe(String.format("An error occurred in %s", thread.getName()));
                 e.printStackTrace();
             }
@@ -155,7 +164,16 @@ public class ViewBot implements Runnable {
         driver.manage().window().setSize(identity.getScreenSize());
 
         // loading page!
-        driver.get(urlQueuer.getObject());
+        try {
+            driver.get(urlQueuer.getObject());
+        } catch (WebDriverException e) {
+            // the proxy used was probably invalid, verify this is the issue (i dont know what other errors throw a WebDriverException, docs are shitty)
+            if (e.getMessage().contains("proxyConnectFailure")) {
+                YTViewBot.log.warning(String.format("Proxy %s:%s is down. Skipping it and using a different proxy. If tor, reloading.", currentProxy.getHost(), currentProxy.getPort()));
+                TorProxyHost prox = (currentProxy instanceof TorProxyHost) ? (TorProxyHost)currentProxy : null;
+                refreshProxy(prox); // get a new proxy instead of wasting resources
+            }
+        }
 
         // yt doesnt autoplay videos to some visitors, if the video isn't playing, we need to find the play button and press it
         // NOTE: I could just press k here, but I have to find whether or not the video is playing first anyway so this just seems easier to me.
@@ -171,6 +189,10 @@ public class ViewBot implements Runnable {
         Thread.sleep((watchTime + watchTimeVariation) - (long)randy.nextInt((int)(watchTimeVariation * 2L)));
         viewsGenerated.incrementAndGet();
 
+        String oldHost = currentProxy.getHost();
+        int oldPort = currentProxy.getPort();
+        int oldViews = -1;
+
         // check and refresh proxy if time
         if (currentProxy instanceof TorProxyHost) {
             TorProxyHost torProxyHost = (TorProxyHost)currentProxy;
@@ -179,14 +201,17 @@ public class ViewBot implements Runnable {
             torProxyHost.waitIfResetting();
 
             if (torProxyHost.viewsGenerated.incrementAndGet() >= torProxyHost.refreshProxyAt.get()) {
+                oldViews = torProxyHost.viewsGenerated.get();
                 refreshProxy(torProxyHost);
             }
         } else {
             currentViewsGenerated++;
             if (currentViewsGenerated >= refreshNormalProxyAt) { // I would like to do this inline but it would differ in function from the above statement so thats why I didnt
+                oldViews = currentViewsGenerated;
                 refreshProxy(null);
             }
         }
+        if (oldViews != -1) YTViewBot.log.info(String.format("Switching from proxy %s:%s after %s views.", oldHost, oldPort, NumberFormat.getNumberInstance().format(oldViews)));
     }
 
     private void refreshProxy(TorProxyHost torProxyHost) throws InterruptedException, IOException {
