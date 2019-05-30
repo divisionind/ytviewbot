@@ -72,7 +72,7 @@ import java.util.logging.Logger;
 // or https://github.com/dgoulet/torsocks
 // https://stackoverflow.com/questions/14321214/how-to-run-multiple-tor-processes-at-once-with-different-exit-ips
 // systemctl reload tor <- gives new ip address
-@CommandLine.Command(name = "ytviewbot", version = "2019.0.1", description = "A bot to view youtube videos (or any site).", mixinStandardHelpOptions = true)
+@CommandLine.Command(name = "ytviewbot", version = "2019.0.1", description = "A bot to view youtube videos (or any site).", mixinStandardHelpOptions = true, usageHelpWidth = 100)
 public class YTViewBot implements Callable<Void> {
 
     @CommandLine.Parameters(index = "0", description = "list of URL(s) to view")
@@ -88,7 +88,7 @@ public class YTViewBot implements Callable<Void> {
     private File torrc;
 
     @CommandLine.Option(names = {"-w", "--watch"}, description = "how long to spend viewing a given URL in seconds (after load time)")
-    private int watchTime = 6;
+    private int watchTime = 8;
 
     @CommandLine.Option(names = {"-v", "--watch-variation"}, description = "how much to vary watch time by + or - in seconds")
     private int watchTimeVariation = 2;
@@ -100,10 +100,10 @@ public class YTViewBot implements Callable<Void> {
     private int torProxies = 1;
 
     @CommandLine.Option(names = {"-r", "--refresh-int"}, description = "number of views to generate before switching proxies")
-    private int proxyRefreshInterval = 50;
+    private int proxyRefreshInterval = 20;
 
     @CommandLine.Option(names = {"-R", "--refresh-variation"}, description = "how much to vary the refresh interval by + or - in number of views")
-    private int proxyRefreshIntervalVariation = 10;
+    private int proxyRefreshIntervalVariation = 5;
 
     public static final File TEMP_FOLDER = new File("/tmp");
     private static final int TOR_START_PORT = 9051; // maybe make this pull from a list later
@@ -250,7 +250,8 @@ public class YTViewBot implements Callable<Void> {
                             .style(AttributedStyle.INVERSE)
                             .append("Status").toAnsi());
                     for (ViewBot bot : viewBots) {
-                        log.info(String.format("%s - %s - %s", bot.getName(), bot.isRunning() ? "RUNNING" : "STOPPED", bot.getDriver().getTitle()));
+                        int[] resetPointStats = bot.getProxyResetPointStats();
+                        log.info(String.format("%s (%s / %s) - %s", bot.getName(), resetPointStats[0], resetPointStats[1], bot.getCurrentlyViewing() == null ? "loading" : bot.getCurrentlyViewing()));
                     }
                     log.info(String.format("Views Generated: %s", NumberFormat.getNumberInstance().format(viewsGenerated.get())));
                     log.info("-----------------------------------------------------------");

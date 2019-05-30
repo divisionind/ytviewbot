@@ -61,6 +61,7 @@ public class ViewBot implements Runnable {
     private int proxyRefreshIntervalVariation;
     private int refreshNormalProxyAt;
     private int currentViewsGenerated;
+    private String currentlyViewing;
 
     public ViewBot(String name, Random randy, Queuer<String> urlQueuer, Queuer<Identity> identityQueuer, Queuer<ProxyHost> proxyQueuer, long watchTime, long watchTimeVariation, AtomicLong viewsGenerated, int proxyRefreshInterval, int proxyRefreshIntervalVariation, File extNoScript) throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException, InterruptedException, IOException {
         this.name = name;
@@ -125,12 +126,23 @@ public class ViewBot implements Runnable {
         return name;
     }
 
-    public boolean isRunning() {
-        return running;
+    public int[] getProxyResetPointStats() {
+        int [] ints = new int[2];
+
+        if (currentProxy instanceof TorProxyHost) {
+            TorProxyHost tph = (TorProxyHost) currentProxy;
+            ints[0] = tph.viewsGenerated.get();
+            ints[1] = tph.refreshProxyAt.get();
+        } else {
+            ints[0] = currentViewsGenerated;
+            ints[1] = refreshNormalProxyAt;
+        }
+
+        return ints;
     }
 
-    public FirefoxDriver getDriver() {
-        return driver;
+    public String getCurrentlyViewing() {
+        return currentlyViewing;
     }
 
     public ViewBot start() {
@@ -165,13 +177,14 @@ public class ViewBot implements Runnable {
 
         // loading page!
         try {
-            driver.get(urlQueuer.getObject());
+            driver.get(currentlyViewing = urlQueuer.getObject());
         } catch (WebDriverException e) {
             // the proxy used was probably invalid, verify this is the issue (i dont know what other errors throw a WebDriverException, docs are shitty)
             if (e.getMessage().contains("proxyConnectFailure")) {
                 YTViewBot.log.warning(String.format("Proxy %s:%s is down. Skipping it and using a different proxy. If tor, reloading.", currentProxy.getHost(), currentProxy.getPort()));
                 TorProxyHost prox = (currentProxy instanceof TorProxyHost) ? (TorProxyHost)currentProxy : null;
                 refreshProxy(prox); // get a new proxy instead of wasting resources
+                return;
             }
         }
 
