@@ -264,7 +264,7 @@ public class YTViewBot implements Callable<Void> {
                     log.info("-----------------------------------------------------------");
                     break;
                 case 'c':
-                    out.staticLine.setCarry(false, "Exiting... Have a nice day!");
+                    out.staticLine.setCarry(false, "Exiting (this may take a while)... Have a nice day!");
                     System.exit(0);
                     break;
                 default:
