@@ -91,6 +91,7 @@ public class YTViewBot implements Callable<Void> {
     public static Logger log = Logger.getLogger("YTViewBot");
 
     public static void main(String[] args) {
+        System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tT %3$s/%4$s] %5$s %n");
 
         if (!System.getProperty("os.name").toLowerCase().contains("linux")) {
             log.severe("OS not supported! You must be running Linux.");
@@ -135,7 +136,6 @@ public class YTViewBot implements Callable<Void> {
         out.setStaticLine(staticLine);
         err.setStaticLine(staticLine);
 
-        System.setProperty("java.util.logging.SimpleFormatter.format", "[%1$tT %3$s/%4$s] %5$s %n");
         log.info("Initializing...");
 
         urlQueuer = new URLQueuer(urls);
@@ -225,6 +225,7 @@ public class YTViewBot implements Callable<Void> {
                     log.info(new AttributedStringBuilder()
                             .style(AttributedStyle.INVERSE)
                             .append("Status").toAnsi());
+                    log.info(String.format("Mode: %s", proxies == null ? "tor" : "proxy list"));
                     for (ViewBot bot : viewBots) {
                         int[] resetPointStats = bot.getProxyResetPointStats();
                         log.info(String.format("%s (%s / %s) - %s", bot.getName(), resetPointStats[0], resetPointStats[1], bot.getCurrentlyViewing() == null ? "loading" : bot.getCurrentlyViewing()));

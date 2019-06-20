@@ -35,6 +35,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * This is what you want to change if the bot stops working in the future!
+ */
 public class ViewBot implements Runnable {
 
     private static final String BASE_CONFIG_UPDATE_STRING = "Components.classes[\"@mozilla.org/preferences-service;1\"].getService(Components.interfaces.nsIPrefBranch).set%sPref(\"%s\", \"%s\");";
