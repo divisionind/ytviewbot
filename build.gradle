@@ -140,7 +140,9 @@ githubRelease {
     m.setAccessible(true)
     lastRelease = m.invoke(changelog())
 
-    body "${getGitChanges(lastRelease)}"
+    if (System.env.TRAVIS != null) {
+        body "${getGitChanges(lastRelease)}"
+    }
 }
 
 // a dummy task so that the githubRelease task may be disable based on certain parameters
