@@ -1,0 +1,15 @@
+#!/bin/sh
+echo "This will remove ytviewbot and all of its dependences + their settings."
+read -p "Are you sure you would like to continue (y/n)? " choice
+case "$choice" in
+  y|Y )
+echo "Uninstalling..."
+rm /bin/ytviewbot
+rm /usr/bin/geckodriver
+apt remove --purge tor openjdk-8-jre firefox-esr
+apt autoremove --purge
+echo "ytviewbot has been uninstalled!"
+;;
+  n|N ) echo "Ok. Exiting...";;
+  * ) echo "invalid";;
+esac

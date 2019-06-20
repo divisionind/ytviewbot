@@ -25,6 +25,9 @@ _Note: This project only supports Linux and is completely headless._
 2. Install `chmod +x install && sudo ./install`. This will install all dependencies, build the source, and install ytviewbot.
 3. Now run `ytviewbot` for further help.
 
+##### Uninstalling
+If you chose to install ytviewbot, you can uninstall it by running the uninstall script located in either
+the root of the github repo or packaged along with every release. `sudo ./uninstall`
 
 ### Using Windows?
 No sweat. You can run Linux on Windows. Just look up how to install the Windows Subsystem for Linux (WSL).
