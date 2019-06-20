@@ -42,37 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
-/*
-        TODO
-        Vary randomly each video request:
-            - local ip address (maybe just disable javascript/WebRTC)
-            - user agent
-            - browser type
-            - screen resolution
-
-        Vary randomly every few requests:
-            - public ip address (tor/proxy)
-
-        NOTE: YOU CAN SOLVE ALL OF THESE PROBLEMS USING THE TOR BROWSER WITH SELENIUM!!!!
-        MAYBE START WITH JUST THIS?
-
-        Tor Browser w/ Selenium:
-            - https://medium.com/@manivannan_data/selenium-with-tor-browser-using-python-7b3606b8c55c
-            - https://kushaldas.in/posts/tor-browser-and-selenium.html
-     */
-
-    /*
-        How to use extensions: https://sites.google.com/a/chromium.org/chromedriver/extensions
-        Change some settings dynamically: https://www.automation99.com/2017/06/dynamically-changing-proxy-in-browsers.html
-        Info on chrome driver (including installation): https://github.com/SeleniumHQ/selenium/wiki/ChromeDriver
-        More on modifying capability settings: https://github.com/machinepublishers/jbrowserdriver
-     */
-
-// see https://www.linuxuprising.com/2018/10/how-to-install-and-use-tor-as-proxy-in.html for tor proxy
-// or https://github.com/dgoulet/torsocks
-// https://stackoverflow.com/questions/14321214/how-to-run-multiple-tor-processes-at-once-with-different-exit-ips
-// systemctl reload tor <- gives new ip address
-@CommandLine.Command(name = "ytviewbot", version = "@DivisionVersion@ @DivisionGitHash@", description = "A bot to view youtube videos (or possibly any site).", mixinStandardHelpOptions = true, usageHelpWidth = 100)
+@CommandLine.Command(name = "ytviewbot", version = "@DivisionVersion@ (git: @DivisionGitHash@)", description = "A bot to view youtube videos (or possibly any site).", mixinStandardHelpOptions = true, usageHelpWidth = 100)
 public class YTViewBot implements Callable<Void> {
 
     @CommandLine.Parameters(index = "0", description = "list of URL(s) to view")

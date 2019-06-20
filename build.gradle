@@ -28,7 +28,7 @@ plugins {
     id "com.github.breadmoirai.github-release" version "2.2.9"
 }
 
-def baseVersion = "2019.0.1"
+def baseVersion = "2019.0.2"
 def beta = false
 def uploadBetas = false
 
