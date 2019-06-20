@@ -13,4 +13,4 @@ before_install:
   - chmod +x gradlew
 
 script:
-  - ./gradlew buildRelease uploadArtifacts
+  ./gradlew buildRelease uploadArtifacts
