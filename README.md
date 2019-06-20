@@ -1,5 +1,5 @@
 # YTViewBot - just a YouTube view bot
-[![](https://img.shields.io/travis/drew6017/TestProject/master.svg?style=flat-square)](https://travis-ci.org/drew6017/TestProject)
+[![](https://img.shields.io/travis/divisionind/ytviewbot/master.svg?style=flat-square)](https://travis-ci.org/divisionind/ytviewbot)
 ![](https://img.shields.io/badge/platform-Linux-blue.svg?style=flat-square)
 ![](https://img.shields.io/badge/license-GPLv3-green.svg?style=flat-square)
 ![](https://img.shields.io/badge/dev%20status-active-brightgreen.svg?style=flat-square)
