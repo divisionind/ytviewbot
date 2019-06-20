@@ -42,6 +42,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
+/*
+    TODO: Optimization
+    Create netty socks proxy that forwards to tor/proxy list proxy that monitors the domain name of incoming http requests and if it begins with a certain string, route to a certain proxy.
+    This will allow for one selenium (browser) instance to support many simultaneous video viewings. This is important because ram usage by the application is ridiculous if you want a good view generation rate.
+ */
+
 @CommandLine.Command(name = "ytviewbot", version = "@DivisionVersion@ (git: @DivisionGitHash@)", description = "A bot to view youtube videos (or possibly any site).", mixinStandardHelpOptions = true, usageHelpWidth = 100)
 public class YTViewBot implements Callable<Void> {
 
