@@ -3,6 +3,7 @@
 ![](https://img.shields.io/badge/platform-Linux-blue.svg?style=flat-square)
 ![](https://img.shields.io/badge/license-GPLv3-green.svg?style=flat-square)
 ![](https://img.shields.io/badge/dev%20status-active-brightgreen.svg?style=flat-square)
+![](https://img.shields.io/github/repo-size/divisionind/ytviewbot.svg?style=flat-square)
 
 ## Installation / Building
 _Note: This project only supports Linux and is completely headless._
