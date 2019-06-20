@@ -28,8 +28,8 @@ plugins {
     id "com.github.breadmoirai.github-release" version "2.2.9"
 }
 
-def baseVersion = "2019.0.3"
-def beta = false
+def baseVersion = "2019.0.4"
+def beta = true
 def uploadBetas = false
 
 group 'com.divisionind'
