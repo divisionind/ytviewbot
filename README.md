@@ -26,7 +26,7 @@ _Note: This project only supports Linux and is completely headless._
 3. Now run `ytviewbot` for further help.
 
 ##### Uninstalling
-If you chose to install ytviewbot, you can uninstall it by running the uninstall script located in either
+You can uninstall ytviewbot by running the uninstall script located in either
 the root of the github repo or packaged along with every release. `sudo ./uninstall`
 
 ### Using Windows?
