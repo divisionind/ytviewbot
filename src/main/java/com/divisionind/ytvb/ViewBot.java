@@ -227,7 +227,7 @@ public class ViewBot implements Runnable {
                 refreshProxy(null);
             }
         }
-        if (oldViews != -1) YTViewBot.log.info(String.format("Switching from proxy %s:%s after %s views.", oldHost, oldPort, NumberFormat.getNumberInstance().format(oldViews)));
+        if (oldViews != -1) YTViewBot.log.info(String.format("Switched from proxy %s:%s after %s views.", oldHost, oldPort, NumberFormat.getNumberInstance().format(oldViews)));
     }
 
     private void refreshProxy(TorProxyHost torProxyHost) throws InterruptedException, IOException {
