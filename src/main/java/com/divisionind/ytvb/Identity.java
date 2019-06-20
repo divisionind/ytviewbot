@@ -1,6 +1,6 @@
 /*
  * ytviewbot - just a YouTube view bot
- * Copyright (C) 2019 Anonymous
+ * Copyright (C) 2019 Division Industries LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,12 +16,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.anonymous.ytvb.queuers;
+package com.divisionind.ytvb;
 
-public interface Queuer<T> {
+import org.openqa.selenium.Dimension;
 
-    /**
-     * Returns an object from a queue. Exact behavior depends on what type of queue.
-     */
-    T getObject();
+public class Identity {
+
+    private String userAgent;
+    private Dimension screenSize;
+
+    public Identity(String userAgent, int width, int height) {
+        this(userAgent, new Dimension(width, height));
+    }
+
+    public Identity(String userAgent, Dimension screenSize) {
+        this.userAgent = userAgent;
+        this.screenSize = screenSize;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public Dimension getScreenSize() {
+        return screenSize;
+    }
 }

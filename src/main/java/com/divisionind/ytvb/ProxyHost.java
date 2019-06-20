@@ -1,6 +1,6 @@
 /*
  * ytviewbot - just a YouTube view bot
- * Copyright (C) 2019 Anonymous
+ * Copyright (C) 2019 Division Industries LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,15 +16,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.anonymous.ytvb;
+package com.divisionind.ytvb;
 
-import java.util.concurrent.ThreadFactory;
+public class ProxyHost {
 
-public class ViewBotFactory implements ThreadFactory {
-    @Override
-    public Thread newThread(Runnable r) {
-        Thread thread = new Thread(r);
-        thread.setDaemon(true);
-        return thread;
+    private String host;
+    private int port;
+    private boolean socks;
+    private int version;
+
+    public ProxyHost(String host, int port, boolean socks, int version) {
+        this.host = host;
+        this.port = port;
+        this.socks = socks;
+        this.version = version;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public boolean isSocks() {
+        return socks;
+    }
+
+    public int getVersion() {
+        return version;
     }
 }

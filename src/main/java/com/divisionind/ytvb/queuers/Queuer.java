@@ -1,6 +1,6 @@
 /*
  * ytviewbot - just a YouTube view bot
- * Copyright (C) 2019 Anonymous
+ * Copyright (C) 2019 Division Industries LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,29 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.anonymous.ytvb.queuers;
+package com.divisionind.ytvb.queuers;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.util.List;
-import java.util.Random;
+public interface Queuer<T> {
 
-public abstract class RandomQueuer<T> extends ElementParser<T> implements Queuer<T> {
-
-    private Random randy;
-
-    public RandomQueuer(List<T> objects, Random randy) {
-        super(objects);
-        this.randy = randy;
-    }
-
-    public RandomQueuer(Reader fr, Random randy) throws IOException {
-        super(fr);
-        this.randy = randy;
-    }
-
-    @Override
-    public T getObject() {
-        return objects.get(randy.nextInt(objects.size()));
-    }
+    /**
+     * Returns an object from a queue. Exact behavior depends on what type of queue.
+     */
+    T getObject();
 }

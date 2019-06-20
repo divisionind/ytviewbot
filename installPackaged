@@ -1,0 +1,6 @@
+#!/bin/sh
+chmod +x installDepends
+./installDepends
+cp ytviewbot /bin/ytviewbot
+chmod +x /bin/ytviewbot
+echo 'YTViewBot was successfully installed!'

@@ -1,6 +1,6 @@
 /*
  * ytviewbot - just a YouTube view bot
- * Copyright (C) 2019 Anonymous
+ * Copyright (C) 2019 Division Industries LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,12 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.anonymous.ytvb;
+package com.divisionind.ytvb;
 
-import com.anonymous.ytvb.queuers.IdentityQueuer;
-import com.anonymous.ytvb.queuers.ProxyHostQueuer;
-import com.anonymous.ytvb.queuers.Queuer;
-import com.anonymous.ytvb.queuers.URLQueuer;
+import com.divisionind.ytvb.queuers.IdentityQueuer;
+import com.divisionind.ytvb.queuers.ProxyHostQueuer;
+import com.divisionind.ytvb.queuers.Queuer;
+import com.divisionind.ytvb.queuers.URLQueuer;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedStringBuilder;
@@ -72,7 +72,7 @@ import java.util.logging.Logger;
 // or https://github.com/dgoulet/torsocks
 // https://stackoverflow.com/questions/14321214/how-to-run-multiple-tor-processes-at-once-with-different-exit-ips
 // systemctl reload tor <- gives new ip address
-@CommandLine.Command(name = "ytviewbot", version = "2019.0.1", description = "A bot to view youtube videos (or any site).", mixinStandardHelpOptions = true, usageHelpWidth = 100)
+@CommandLine.Command(name = "ytviewbot", version = "@DivisionVersion@ @DivisionGitHash@", description = "A bot to view youtube videos (or possibly any site).", mixinStandardHelpOptions = true, usageHelpWidth = 100)
 public class YTViewBot implements Callable<Void> {
 
     @CommandLine.Parameters(index = "0", description = "list of URL(s) to view")
@@ -148,6 +148,12 @@ public class YTViewBot implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
+        // used to temporarily disable tor
+        if (proxies == null) {
+            log.severe("Tor proxies are not yet supported. Please specify a list of socks4/5 proxies to use the program.");
+            return null;
+        }
+
         Terminal terminal = TerminalBuilder.builder()
                 .name("YTViewBot")
                 .jna(true)

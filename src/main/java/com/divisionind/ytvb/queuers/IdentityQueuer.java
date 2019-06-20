@@ -1,6 +1,6 @@
 /*
  * ytviewbot - just a YouTube view bot
- * Copyright (C) 2019 Anonymous
+ * Copyright (C) 2019 Division Industries LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.anonymous.ytvb.queuers;
+package com.divisionind.ytvb.queuers;
 
-import com.anonymous.ytvb.Identity;
+import com.divisionind.ytvb.Identity;
 import org.openqa.selenium.Dimension;
 
 import java.io.IOException;

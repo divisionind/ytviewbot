@@ -1,6 +1,6 @@
 /*
  * ytviewbot - just a YouTube view bot
- * Copyright (C) 2019 Anonymous
+ * Copyright (C) 2019 Division Industries LLC
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,35 +16,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.anonymous.ytvb;
+package com.divisionind.ytvb.queuers;
 
-public class ProxyHost {
+import java.io.IOException;
+import java.io.Reader;
+import java.util.List;
+import java.util.Random;
 
-    private String host;
-    private int port;
-    private boolean socks;
-    private int version;
+public abstract class RandomQueuer<T> extends ElementParser<T> implements Queuer<T> {
 
-    public ProxyHost(String host, int port, boolean socks, int version) {
-        this.host = host;
-        this.port = port;
-        this.socks = socks;
-        this.version = version;
+    private Random randy;
+
+    public RandomQueuer(List<T> objects, Random randy) {
+        super(objects);
+        this.randy = randy;
     }
 
-    public String getHost() {
-        return host;
+    public RandomQueuer(Reader fr, Random randy) throws IOException {
+        super(fr);
+        this.randy = randy;
     }
 
-    public int getPort() {
-        return port;
-    }
-
-    public boolean isSocks() {
-        return socks;
-    }
-
-    public int getVersion() {
-        return version;
+    @Override
+    public T getObject() {
+        return objects.get(randy.nextInt(objects.size()));
     }
 }
