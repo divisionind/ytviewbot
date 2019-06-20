@@ -29,7 +29,7 @@ plugins {
 }
 
 def baseVersion = "2019.0.1"
-def beta = true
+def beta = false
 def uploadBetas = false
 
 group 'com.divisionind'
@@ -60,6 +60,12 @@ def getGitCommitNum = { shash ->
 def getGitChanges = { shash ->
     def stdout = new ByteArrayOutputStream()
     exec { // if this fails, try changing %h and %s to separate arguments
+        int lastReleaseInt
+        try {
+            lastReleaseInt = Integer.parseInt(getGitCommitNum(shash))
+        } catch (NumberFormatException e) {
+            lastReleaseInt = 0
+        }
         commandLine 'git', 'log', '--pretty=format:* %h %s', '--max-count', "${Integer.parseInt(getGitCommitNum('HEAD'))-Integer.parseInt(getGitCommitNum(shash))}"
         standardOutput = stdout
     }
