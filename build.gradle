@@ -29,7 +29,7 @@ plugins {
 }
 
 def baseVersion = "2019.0.3"
-def beta = true
+def beta = false
 def uploadBetas = false
 
 group 'com.divisionind'

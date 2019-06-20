@@ -75,8 +75,10 @@ public class YTViewBot implements Callable<Void> {
     @CommandLine.Option(names = {"-R", "--refresh-variation"}, description = "how much to vary the refresh interval by + or - in number of views")
     private int proxyRefreshIntervalVariation = 5;
 
+    @CommandLine.Option(names = {"-s", "--tor-start-port"}, description = "port to start creating tor processes from, incremented for every tor process")
+    private int torStartPort = 9051; // maybe make this pull from a list later
+
     public static final File TEMP_FOLDER = new File("/tmp");
-    private static final int TOR_START_PORT = 9051; // maybe make this pull from a list later
 
     private static PrintStream systemOut;
     private static OutputRedirect out;
@@ -119,12 +121,6 @@ public class YTViewBot implements Callable<Void> {
 
     @Override
     public Void call() throws Exception {
-        // used to temporarily disable tor
-        if (proxies == null) {
-            log.severe("Tor proxies are not yet supported. Please specify a list of socks4/5 proxies to use the program.");
-            return null;
-        }
-
         Terminal terminal = TerminalBuilder.builder()
                 .name("YTViewBot")
                 .jna(true)
@@ -150,12 +146,20 @@ public class YTViewBot implements Callable<Void> {
                 return null;
             }
 
+            // prevents idiots
+            if (torProxies > 5) {
+                log.severe("You can not use more than 5 tor proxies. It is obvious you have no idea what you are doing.");
+                return null;
+            }
+
             log.info(String.format("Proxy list not specified. Generating and using %s tor proxies...", torProxies));
 
             List<ProxyHost> proxyHosts = new ArrayList<>();
 
-            int port = TOR_START_PORT;
+            int port = torStartPort;
+            String torLine = "Starting tor proxies (%s/%s)...";
             for (int i = 0;i<torProxies;i++) {
+                staticLine.setLine(String.format(torLine, i+1, torProxies));
                 TorProxyHost proxy = new TorProxyHost(port, torrc, TorProxyHost.calculateRefreshPoint(randy, proxyRefreshInterval, proxyRefreshIntervalVariation));
                 try {
                     proxy.start();
@@ -195,7 +199,7 @@ public class YTViewBot implements Callable<Void> {
         // spawn processes
         for (int i = 0;i<processes;i++) {
             String name = String.format("ViewBot-%s", i);
-            staticLine.setLine(String.format("Starting %s...", name));
+            staticLine.setLine(String.format("Starting %s...          ", name)); // extra space here to rewrite the previous setLine from tor proxies (if was present)
             viewBots[i] = new ViewBot(name, randy, urlQueuer, identityQueuer, proxyQueuer, TimeUnit.SECONDS.toMillis(watchTime), TimeUnit.SECONDS.toMillis(watchTimeVariation), viewsGenerated, proxyRefreshInterval, proxyRefreshIntervalVariation, extNoScript).start();
         }
 
@@ -207,7 +211,7 @@ public class YTViewBot implements Callable<Void> {
             if (proxyQueuer.getObject() instanceof TorProxyHost) {
                 ((ProxyHostQueuer)proxyQueuer).getObjects().forEach(v -> {
                     try {
-                        ((TorProxyHost)v).stop();
+                        ((TorProxyHost)v).stopAndClean();
                     } catch (Exception e) { }
                 });
             }

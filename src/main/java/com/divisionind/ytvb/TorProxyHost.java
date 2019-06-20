@@ -19,6 +19,9 @@
 package com.divisionind.ytvb;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -61,11 +64,21 @@ public class TorProxyHost extends ProxyHost {
         process.waitFor();
     }
 
+    public void stopAndClean() throws InterruptedException, IOException {
+        stop();
+        File torDataFolder = new File(YTViewBot.TEMP_FOLDER, "tordata-" + getPort());
+        Files.walk(torDataFolder.toPath())
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
+    }
+
     public void start() throws IOException {
         starting = true;
         try {
             // create config derived from given with modified port value
 
+            File torDataFolder = new File(YTViewBot.TEMP_FOLDER, "tordata-" + getPort());
             File torrcDerived = new File(YTViewBot.TEMP_FOLDER, "torrc-" + getPort());
 
             // check if file exists first (tells us whether or not this is a reload)
@@ -87,14 +100,18 @@ public class TorProxyHost extends ProxyHost {
                 torrcDerived.deleteOnExit();
             }
 
+            // creates the data folder
+            if (!torDataFolder.exists()) torDataFolder.mkdirs();
+
             // create process
-            process = new ProcessBuilder("tor", "-f", torrcDerived.getAbsolutePath()).start();
+            process = new ProcessBuilder("tor", "-f", torrcDerived.getAbsolutePath(), "DataDirectory", torDataFolder.getAbsolutePath()).start();
 
             boolean success = false;
             try (Scanner s = new Scanner(new InputStreamReader(process.getInputStream()))) {
                 while (s.hasNext()) {
-                    String line = s.nextLine().toLowerCase();
-                    if (line.contains("done")) {
+                    String line = s.nextLine();
+                    YTViewBot.log.info(line);
+                    if (line.toLowerCase().contains("done")) {
                         // tor process has been started successfully
                         success = true;
                         break;
