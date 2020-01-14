@@ -2,8 +2,19 @@
 [![](https://img.shields.io/travis/divisionind/ytviewbot/master.svg?style=flat-square)](https://travis-ci.org/divisionind/ytviewbot)
 ![](https://img.shields.io/badge/platform-Linux-blue.svg?style=flat-square)
 ![](https://img.shields.io/badge/license-GPLv3-green.svg?style=flat-square)
-![](https://img.shields.io/badge/dev%20status-active-brightgreen.svg?style=flat-square)
+![](https://img.shields.io/badge/dev%20status-inactive-red.svg?style=flat-square)
 ![](https://img.shields.io/github/repo-size/divisionind/ytviewbot.svg?style=flat-square)
+
+## Depreciated
+This project was just a little fun to reverse how YouTube signifies a "view". However,
+the overhead of running selenium instances, or any virtual browser process for that matter, 
+is extreme given the amount of views these processes generate. The only practical method for 
+view botting on modern YouTube is to:
+a) reverse how a "view" is calculated 
+b) only process these bare minimum view requirements
+
+Furthurmore one would have to continually update such a bot to keep up with the changing 
+view requirements put out by YouTube.
 
 ## Installation / Building
 _Note: This project only supports Linux and is completely headless._
