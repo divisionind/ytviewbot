@@ -43,66 +43,18 @@ the root of the github repo or packaged along with every release. `sudo ./uninst
 ### Using Windows?
 No sweat. You can run Linux on Windows. Just look up how to install the Windows Subsystem for Linux (WSL).
 
-
 ### Using Mac?
 Use a better OS.
 
-
-## Support
+## Donate
 If you like the project, please share the wealth. I'm poor. I need money. Pls help.
 
-- BTC: 1FpywKn3H2CrGUR1tziq5wjhwLeXHSet9C
-- BCH: bitcoincash:qz32f4h83dn9fpju594eafm4hytr528l4c4utgyw66
-
+- BTC: `bc1qhr43elqs4hduv6ls0893zup7t6mlmlh8qmcl30`
+- ETH: `0x1bdA7dB6484802DFf4945edc52363B4A8FAcb470`
+- ETC: `0x4a368bb4cd854f650169ce207268c303ffecafb2`
 
 ## Contributing
 All contributions must follow 
 [Java's standard code conventions.](https://www.oracle.com/technetwork/java/codeconventions-150003.pdf) 
 Failure to comply to these conventions will result in the denial of your contribution, regardless 
 of the final functioning of the code.
-
-### What does this mean?
-Not a lot. Just DO **NOT** do stuff like this:
-
-```java
-public void example()
-{
-    System.out.println("bad code");
-}
-```
-
-or this
-
-```java
-System.out.println( getName( bad_code ) );
-```
-
-or this
-
-```java
-public void AnotherBadExample() {}
-```
-
-These practices make your code harder to read and are very annoying.
-
-* * *
-
-Do **THIS** instead:
-
-```java
-public void example() {
-    System.out.println("good code");
-}
-```
-
-or this
-
-```java
-System.out.println(getName(goodCode));
-```
-
-or this
-
-```java
-public void anotherGoodExample() {}
-```
